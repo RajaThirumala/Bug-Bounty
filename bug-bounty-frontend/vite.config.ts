@@ -5,10 +5,10 @@ import tsconfigPaths from "vite-tsconfig-paths";
 
 export default defineConfig({
   plugins: [react(), tailwindcss(), tsconfigPaths()],
+  cacheDir: ".vite",
   server: {
     host: "::",
     port: 8080,
     strictPort: true,
   },
 });
-

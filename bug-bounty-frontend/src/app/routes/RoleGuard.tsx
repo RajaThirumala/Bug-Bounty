@@ -1,12 +1,6 @@
 import type { ReactNode } from "react";
 import { Navigate } from "react-router-dom";
-
-export type UserRole = "researcher" | "organization" | "admin";
-
-// TODO: Replace mock role with backend user role
-const mockUser: { role: UserRole } = {
-  role: "researcher",
-};
+import { useAuthStore, type UserRole } from "@/features/auth";
 
 interface RoleGuardProps {
   allow: UserRole[];
@@ -14,7 +8,9 @@ interface RoleGuardProps {
 }
 
 export function RoleGuard({ allow, children }: RoleGuardProps) {
-  if (!allow.includes(mockUser.role)) {
+  const userRole = useAuthStore((state) => state.user.role);
+
+  if (!allow.includes(userRole)) {
     return <Navigate to="/unauthorized" replace />;
   }
   return <>{children}</>;

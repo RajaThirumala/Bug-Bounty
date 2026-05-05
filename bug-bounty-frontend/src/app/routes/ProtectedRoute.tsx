@@ -1,10 +1,6 @@
 import type { ReactNode } from "react";
 import { Navigate, useLocation } from "react-router-dom";
-
-// TODO: Replace mock auth with backend auth
-const mockAuth = {
-  isAuthenticated: true,
-};
+import { useAuthStore } from "@/features/auth";
 
 interface ProtectedRouteProps {
   children: ReactNode;
@@ -12,8 +8,9 @@ interface ProtectedRouteProps {
 
 export function ProtectedRoute({ children }: ProtectedRouteProps) {
   const location = useLocation();
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
 
-  if (!mockAuth.isAuthenticated) {
+  if (!isAuthenticated) {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 

@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/common/PageHeader";
-import { mockPrograms } from "@/features/programs/services/mockdata";
+import { mockPrograms } from "@/features/programs";
 
 export default function ProgramDetails() {
   const { programId } = useParams<{ programId: string }>();
@@ -15,7 +15,7 @@ export default function ProgramDetails() {
       <div>
         <PageHeader title="Program not found" description="We couldn't find that program." />
         <Button asChild variant="secondary">
-          <Link to="/programs"><ArrowLeft className="h-4 w-4 mr-2" />Back to programs</Link>
+          <Link to="/developer/programs"><ArrowLeft className="h-4 w-4 mr-2" />Back to programs</Link>
         </Button>
       </div>
     );
@@ -24,7 +24,7 @@ export default function ProgramDetails() {
   return (
     <div>
       <Button asChild variant="ghost" size="sm" className="mb-4 -ml-2">
-        <Link to="/programs"><ArrowLeft className="h-4 w-4 mr-2" />Back to programs</Link>
+        <Link to="/developer/programs"><ArrowLeft className="h-4 w-4 mr-2" />Back to programs</Link>
       </Button>
 
       <PageHeader
@@ -32,7 +32,7 @@ export default function ProgramDetails() {
         description={program.organization}
         actions={
           <Button asChild>
-            <Link to="/submit-report">Submit a report</Link>
+            <Link to="/developer/submit-report">Submit a report</Link>
           </Button>
         }
       />

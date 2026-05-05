@@ -14,7 +14,7 @@ export default function Unauthorized() {
           You don't have permission to access this page.
         </p>
         <Button asChild className="mt-6">
-          <Link to="/dashboard">Back to dashboard</Link>
+          <Link to="/">Back to dashboard</Link>
         </Button>
       </div>
     </div>

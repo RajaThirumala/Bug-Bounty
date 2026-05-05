@@ -2,19 +2,30 @@ import { createBrowserRouter, Navigate } from "react-router-dom";
 import { AppLayout } from "@/layouts/AppLayout";
 import { ProtectedRoute } from "@/app/routes/ProtectedRoute";
 import { RoleGuard } from "@/app/routes/RoleGuard";
+import { RootRedirect } from "@/app/routes/RootRedirect";
 import Login from "@/pages/Login";
 import Register from "@/pages/Register";
-import Dashboard from "@/pages/Dashboard";
-import Programs from "@/pages/Programs";
-import ProgramDetails from "@/pages/ProgramDetails";
-import SubmitReport from "@/pages/SubmitReport";
-import Reports from "@/pages/Reports";
+import Programs from "@/pages/developer/Programs";
+import ProgramDetails from "@/pages/developer/ProgramDetails";
+import SubmitReport from "@/pages/developer/SubmitReport";
+import Reports from "@/pages/developer/Reports";
 import Profile from "@/pages/Profile";
 import Unauthorized from "@/pages/Unauthorized";
 import NotFound from "@/pages/NotFound";
+import { DeveloperDashboard, OrganizationDashboard } from "@/features/dashboard";
+import DeveloperFeatureRequests from "@/pages/developer/FeatureRequests";
+import OrganizationPrograms from "@/pages/organization/OrganizationPrograms";
+import CreateProgram from "@/pages/organization/CreateProgram";
+import OrganizationReports from "@/pages/organization/OrganizationReports";
+import OrganizationFeatureRequests from "@/pages/organization/OrganizationFeatureRequests";
+import CreateFeatureRequest from "@/pages/organization/CreateFeatureRequest";
 
 export const router = createBrowserRouter([
-  { path: "/", element: <Navigate to="/dashboard" replace /> },
+  { path: "/", element: <RootRedirect /> },
+  { path: "/dashboard", element: <RootRedirect /> },
+  { path: "/programs", element: <Navigate to="/developer/programs" replace /> },
+  { path: "/reports", element: <Navigate to="/developer/reports" replace /> },
+  { path: "/submit-report", element: <Navigate to="/developer/submit-report" replace /> },
   { path: "/login", element: <Login /> },
   { path: "/register", element: <Register /> },
   { path: "/unauthorized", element: <Unauthorized /> },
@@ -25,18 +36,118 @@ export const router = createBrowserRouter([
       </ProtectedRoute>
     ),
     children: [
-      { path: "/dashboard", element: <Dashboard /> },
-      { path: "/programs", element: <Programs /> },
-      { path: "/programs/:programId", element: <ProgramDetails /> },
       {
-        path: "/submit-report",
+        path: "/developer",
         element: (
-          <RoleGuard allow={["researcher"]}>
+          <RoleGuard allow={["developer"]}>
+            <RootRedirect />
+          </RoleGuard>
+        ),
+      },
+      {
+        path: "/developer/dashboard",
+        element: (
+          <RoleGuard allow={["developer"]}>
+            <DeveloperDashboard />
+          </RoleGuard>
+        ),
+      },
+      {
+        path: "/developer/programs",
+        element: (
+          <RoleGuard allow={["developer"]}>
+            <Programs />
+          </RoleGuard>
+        ),
+      },
+      {
+        path: "/developer/programs/:programId",
+        element: (
+          <RoleGuard allow={["developer"]}>
+            <ProgramDetails />
+          </RoleGuard>
+        ),
+      },
+      {
+        path: "/developer/submit-report",
+        element: (
+          <RoleGuard allow={["developer"]}>
             <SubmitReport />
           </RoleGuard>
         ),
       },
-      { path: "/reports", element: <Reports /> },
+      {
+        path: "/developer/reports",
+        element: (
+          <RoleGuard allow={["developer"]}>
+            <Reports />
+          </RoleGuard>
+        ),
+      },
+      {
+        path: "/developer/feature-requests",
+        element: (
+          <RoleGuard allow={["developer"]}>
+            <DeveloperFeatureRequests />
+          </RoleGuard>
+        ),
+      },
+      {
+        path: "/organization",
+        element: (
+          <RoleGuard allow={["organization"]}>
+            <RootRedirect />
+          </RoleGuard>
+        ),
+      },
+      {
+        path: "/organization/dashboard",
+        element: (
+          <RoleGuard allow={["organization"]}>
+            <OrganizationDashboard />
+          </RoleGuard>
+        ),
+      },
+      {
+        path: "/organization/programs",
+        element: (
+          <RoleGuard allow={["organization"]}>
+            <OrganizationPrograms />
+          </RoleGuard>
+        ),
+      },
+      {
+        path: "/organization/programs/new",
+        element: (
+          <RoleGuard allow={["organization"]}>
+            <CreateProgram />
+          </RoleGuard>
+        ),
+      },
+      {
+        path: "/organization/reports",
+        element: (
+          <RoleGuard allow={["organization"]}>
+            <OrganizationReports />
+          </RoleGuard>
+        ),
+      },
+      {
+        path: "/organization/feature-requests",
+        element: (
+          <RoleGuard allow={["organization"]}>
+            <OrganizationFeatureRequests />
+          </RoleGuard>
+        ),
+      },
+      {
+        path: "/organization/feature-requests/new",
+        element: (
+          <RoleGuard allow={["organization"]}>
+            <CreateFeatureRequest />
+          </RoleGuard>
+        ),
+      },
       { path: "/profile", element: <Profile /> },
     ],
   },

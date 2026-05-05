@@ -1,20 +1,10 @@
-export type ProgramStatus = "active" | "paused" | "private";
+import type { Program } from "@/features/programs/types";
 
-export interface Program {
-  id: string;
-  name: string;
-  organization: string;
-  description: string;
-  minBounty: number;
-  maxBounty: number;
-  status: ProgramStatus;
-  scope: string[];
-}
-
-// TODO: Replace mock programs with API data
+// TODO: Replace mock programs with API data when backend integration starts.
 export const mockPrograms: Program[] = [
   {
     id: "acme-web",
+    organizationId: "org-acme",
     name: "Acme Web Platform",
     organization: "Acme Corp",
     description:
@@ -26,6 +16,7 @@ export const mockPrograms: Program[] = [
   },
   {
     id: "northwind-api",
+    organizationId: "org-northwind",
     name: "Northwind Public API",
     organization: "Northwind Logistics",
     description: "Bug bounty program covering our public REST API and partner integrations.",
@@ -36,6 +27,7 @@ export const mockPrograms: Program[] = [
   },
   {
     id: "lumen-mobile",
+    organizationId: "org-lumen",
     name: "Lumen Mobile Apps",
     organization: "Lumen Health",
     description: "Private program for mobile (iOS/Android) clients handling sensitive health data.",

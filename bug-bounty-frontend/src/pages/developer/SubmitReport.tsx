@@ -5,6 +5,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PageHeader } from "@/components/common/PageHeader";
+import { mockPrograms } from "@/features/programs";
 
 export default function SubmitReport() {
   // TODO: Replace placeholder submit with backend submission
@@ -33,9 +34,9 @@ export default function SubmitReport() {
                 <Select>
                   <SelectTrigger id="program"><SelectValue placeholder="Select a program" /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="acme-web">Acme Web Platform</SelectItem>
-                    <SelectItem value="northwind-api">Northwind Public API</SelectItem>
-                    <SelectItem value="lumen-mobile">Lumen Mobile Apps</SelectItem>
+                    {mockPrograms.map((program) => (
+                      <SelectItem key={program.id} value={program.id}>{program.name}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>

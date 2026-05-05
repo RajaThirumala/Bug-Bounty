@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { PageHeader } from "@/components/common/PageHeader";
-import { mockPrograms, type ProgramStatus } from "@/features/programs/services/mockdata";
+import { mockPrograms, type ProgramStatus } from "@/features/programs";
 
 const statusVariant: Record<ProgramStatus, { label: string; className: string }> = {
   active: { label: "Active", className: "bg-success/10 text-success border-success/20" },
@@ -51,7 +51,7 @@ export default function Programs() {
                     </p>
                   </div>
                   <Button asChild size="sm" variant="secondary">
-                    <Link to={`/programs/${p.id}`}>View details</Link>
+                    <Link to={`/developer/programs/${p.id}`}>View details</Link>
                   </Button>
                 </div>
               </CardContent>
