@@ -1,53 +1,49 @@
 import { Link, useNavigate } from "react-router-dom";
-import { ShieldCheck } from "lucide-react";
+import { Bug, Github } from "lucide-react";
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { mockAuthUsers, mockPassword, useAuthStore, type UserRole } from "@/features/auth";
+import { useAuthStore } from "@/features/auth";
 
 export default function Login() {
   const navigate = useNavigate();
   const signIn = useAuthStore((state) => state.signIn);
-  const role = useAuthStore((state) => state.user.role);
-  const setRole = useAuthStore((state) => state.setRole);
-  const selectedUser = mockAuthUsers.find((user) => user.role === role) ?? mockAuthUsers[0];
-  const [email, setEmail] = useState(selectedUser.email);
-  const [password, setPassword] = useState(mockPassword);
+  const signInWithOAuth = useAuthStore((state) => state.signInWithOAuth);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const didSignIn = signIn(email, password);
-
-    if (!didSignIn) {
-      setError("Use one of the mock accounts shown below.");
-      return;
-    }
-
-    const nextRole = mockAuthUsers.find(
-      (user) => user.email.toLowerCase() === email.trim().toLowerCase(),
-    )?.role;
-
-    navigate(nextRole === "organization" ? "/organization/dashboard" : "/developer/dashboard", {
+  const redirectForRole = (role: "developer" | "organization") => {
+    navigate(role === "organization" ? "/organization/dashboard" : "/developer/dashboard", {
       replace: true,
     });
   };
 
-  const handleRoleChange = (value: UserRole) => {
-    const nextUser = mockAuthUsers.find((user) => user.role === value);
-    setRole(value);
-    setEmail(nextUser?.email ?? "");
-    setPassword(mockPassword);
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
     setError("");
+    setIsSubmitting(true);
+
+    try {
+      const user = await signIn(email, password);
+      redirectForRole(user.role);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to sign in");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleOAuth = async (provider: "google" | "github") => {
+    setError("");
+    try {
+      await signInWithOAuth(provider);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to start OAuth");
+    }
   };
 
   return (
@@ -56,10 +52,19 @@ export default function Login() {
         <CardContent className="p-8">
           <div className="flex flex-col items-center mb-6">
             <div className="h-10 w-10 rounded-xl bg-primary/10 flex items-center justify-center mb-3">
-              <ShieldCheck className="h-5 w-5 text-primary" />
+              <Bug className="h-5 w-5 text-primary" />
             </div>
             <h1 className="text-xl font-semibold tracking-tight">Welcome back</h1>
             <p className="text-sm text-muted-foreground mt-1">Sign in to your account</p>
+          </div>
+          <div className="grid grid-cols-2 gap-3 mb-5">
+            <Button type="button" variant="outline" onClick={() => handleOAuth("google")}>
+              Google
+            </Button>
+            <Button type="button" variant="outline" onClick={() => handleOAuth("github")}>
+              <Github className="h-4 w-4 mr-2" />
+              GitHub
+            </Button>
           </div>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-1.5">
@@ -82,25 +87,11 @@ export default function Login() {
                 onChange={(e) => setPassword(e.target.value)}
               />
             </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="role">Role</Label>
-              <Select value={role} onValueChange={(value) => handleRoleChange(value as UserRole)}>
-                <SelectTrigger id="role">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="developer">Developer</SelectItem>
-                  <SelectItem value="organization">Organization</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
             {error && <p className="text-sm text-destructive">{error}</p>}
-            <Button type="submit" className="w-full">Sign in</Button>
+            <Button type="submit" className="w-full" disabled={isSubmitting}>
+              {isSubmitting ? "Signing in..." : "Sign in"}
+            </Button>
           </form>
-          <div className="mt-5 rounded-lg border border-border bg-muted/30 p-3 text-xs text-muted-foreground space-y-1">
-            <p>Developer: developer@bugbounty.test / password123</p>
-            <p>Organization: organization@bugbounty.test / password123</p>
-          </div>
           <p className="mt-6 text-center text-sm text-muted-foreground">
             Don't have an account?{" "}
             <Link to="/register" className="text-primary hover:underline">Register</Link>

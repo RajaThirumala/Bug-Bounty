@@ -11,7 +11,7 @@ import { useAuthStore } from "@/features/auth";
 
 export default function Reports() {
   const user = useAuthStore((state) => state.user);
-  const reports = mockReports.filter((report) => report.developerId === user.id);
+  const reports = mockReports.filter((report) => report.developerId === user?.id);
 
   return (
     <div>

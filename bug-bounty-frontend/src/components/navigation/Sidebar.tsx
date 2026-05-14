@@ -1,5 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import {
+  Bug,
   ClipboardList,
   FilePlus2,
   FileText,
@@ -32,7 +33,7 @@ const organizationItems = [
 
 export function Sidebar() {
   const { pathname } = useLocation();
-  const role = useAuthStore((state) => state.user.role);
+  const role = useAuthStore((state) => state.user?.role ?? "developer");
   const homePath = role === "organization" ? "/organization/dashboard" : "/developer/dashboard";
   const items = role === "organization" ? organizationItems : developerItems;
 
@@ -41,7 +42,7 @@ export function Sidebar() {
       <div className="px-5 py-5 border-b border-sidebar-border">
         <Link to={homePath} className="flex items-center gap-2">
           <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
-            <ShieldCheck className="h-4 w-4 text-primary" />
+            <Bug className="h-4 w-4 text-primary" />
           </div>
           <span className="font-semibold tracking-tight text-sidebar-foreground">BugBounty</span>
         </Link>
@@ -68,7 +69,7 @@ export function Sidebar() {
         })}
       </nav>
       <div className="p-4 text-xs text-muted-foreground border-t border-sidebar-border">
-        v0.1.0 · Day 1
+        v0.1.0 · Day 2
       </div>
     </aside>
   );

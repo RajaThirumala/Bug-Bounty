@@ -1,0 +1,20 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1778681779479,
+      "tag": "0000_rich_cardiac",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1778760000000,
+      "tag": "0001_auto_profiles",
+      "breakpoints": true
+    }
+  ]
+}

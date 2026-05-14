@@ -1,0 +1,4 @@
+client_secret_*.json
+
+bug-bounty-frontend/.vite/
+bug-bounty-frontend/tsconfig.tsbuildinfo

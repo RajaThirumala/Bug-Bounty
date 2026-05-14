@@ -19,7 +19,7 @@ export default function OrganizationDashboard() {
     <div>
       <PageHeader
         title="Organization Dashboard"
-        description={`Manage programs, reports, and feature requests for ${user.title}.`}
+        description={`Manage programs, reports, and feature requests for ${user?.title ?? "your organization"}.`}
       />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">

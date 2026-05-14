@@ -8,9 +8,9 @@ interface RoleGuardProps {
 }
 
 export function RoleGuard({ allow, children }: RoleGuardProps) {
-  const userRole = useAuthStore((state) => state.user.role);
+  const userRole = useAuthStore((state) => state.user?.role);
 
-  if (!allow.includes(userRole)) {
+  if (!userRole || !allow.includes(userRole)) {
     return <Navigate to="/unauthorized" replace />;
   }
   return <>{children}</>;

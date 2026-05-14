@@ -3,8 +3,10 @@ import { AppLayout } from "@/layouts/AppLayout";
 import { ProtectedRoute } from "@/app/routes/ProtectedRoute";
 import { RoleGuard } from "@/app/routes/RoleGuard";
 import { RootRedirect } from "@/app/routes/RootRedirect";
+import Home from "@/pages/Home";
 import Login from "@/pages/Login";
 import Register from "@/pages/Register";
+import AuthCallback from "@/pages/AuthCallback";
 import Programs from "@/pages/developer/Programs";
 import ProgramDetails from "@/pages/developer/ProgramDetails";
 import SubmitReport from "@/pages/developer/SubmitReport";
@@ -21,13 +23,14 @@ import OrganizationFeatureRequests from "@/pages/organization/OrganizationFeatur
 import CreateFeatureRequest from "@/pages/organization/CreateFeatureRequest";
 
 export const router = createBrowserRouter([
-  { path: "/", element: <RootRedirect /> },
+  { path: "/", element: <Home /> },
   { path: "/dashboard", element: <RootRedirect /> },
   { path: "/programs", element: <Navigate to="/developer/programs" replace /> },
   { path: "/reports", element: <Navigate to="/developer/reports" replace /> },
   { path: "/submit-report", element: <Navigate to="/developer/submit-report" replace /> },
   { path: "/login", element: <Login /> },
   { path: "/register", element: <Register /> },
+  { path: "/auth/callback", element: <AuthCallback /> },
   { path: "/unauthorized", element: <Unauthorized /> },
   {
     element: (

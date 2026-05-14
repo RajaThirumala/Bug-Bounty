@@ -3,7 +3,12 @@ import { useAuthStore } from "@/features/auth";
 
 export function RootRedirect() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
-  const role = useAuthStore((state) => state.user.role);
+  const isLoading = useAuthStore((state) => state.isLoading);
+  const role = useAuthStore((state) => state.user?.role);
+
+  if (isLoading) {
+    return null;
+  }
 
   if (!isAuthenticated) {
     return <Navigate to="/login" replace />;

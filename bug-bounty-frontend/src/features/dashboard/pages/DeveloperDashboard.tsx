@@ -10,14 +10,14 @@ import { useAuthStore } from "@/features/auth";
 
 export default function DeveloperDashboard() {
   const user = useAuthStore((state) => state.user);
-  const myReports = mockReports.filter((report) => report.developerId === user.id);
+  const myReports = mockReports.filter((report) => report.developerId === user?.id);
   const acceptedReports = myReports.filter((report) => report.status === "resolved");
 
   return (
     <div>
       <PageHeader
         title="Developer Dashboard"
-        description={`Welcome back, ${user.name}. Here's a snapshot of your bug bounty activity.`}
+        description={`Welcome back, ${user?.name ?? "researcher"}. Here's a snapshot of your bug bounty activity.`}
       />
 
       <Card className="mb-6 border-border/70 shadow-[var(--shadow-soft)] rounded-xl bg-gradient-to-br from-primary/5 to-transparent">
