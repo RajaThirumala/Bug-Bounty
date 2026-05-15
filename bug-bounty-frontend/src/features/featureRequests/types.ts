@@ -1,8 +1,9 @@
-export type FeatureRequestStatus = "open" | "planned" | "in-progress" | "completed";
+export type FeatureRequestStatus = "open" | "planned" | "in_progress" | "completed";
 
 export interface FeatureRequest {
   id: string;
   organizationId: string;
+  organizationName?: string;
   title: string;
   description: string;
   bounty: number;

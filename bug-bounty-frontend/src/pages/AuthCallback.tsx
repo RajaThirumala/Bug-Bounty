@@ -10,7 +10,12 @@ export default function AuthCallback() {
   useEffect(() => {
     void completeOAuthSignIn()
       .then((user) => {
-        navigate(user.role === "organization" ? "/organization/dashboard" : "/developer/dashboard", {
+        if (!user.onboardingCompleted) {
+          navigate("/onboarding", { replace: true });
+          return;
+        }
+
+        navigate(user.role === "organization" ? "/organization/dashboard" : "/researcher/dashboard", {
           replace: true,
         });
       })

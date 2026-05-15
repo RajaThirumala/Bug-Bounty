@@ -1,21 +1,33 @@
 import { Link, useParams } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/common/PageHeader";
-import { mockPrograms } from "@/features/programs";
+import { getResearcherProgram } from "@/features/programs";
+import { useAuthStore } from "@/features/auth";
 
 export default function ProgramDetails() {
   const { programId } = useParams<{ programId: string }>();
-  const program = mockPrograms.find((p) => p.id === programId);
+  const accessToken = useAuthStore((state) => state.accessToken);
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["researcher-program", programId],
+    queryFn: () => getResearcherProgram(accessToken ?? "", programId ?? ""),
+    enabled: Boolean(accessToken && programId),
+  });
+  const program = data?.program;
 
-  if (!program) {
+  if (isLoading) {
+    return <p className="text-sm text-muted-foreground">Loading program...</p>;
+  }
+
+  if (error || !program) {
     return (
       <div>
         <PageHeader title="Program not found" description="We couldn't find that program." />
         <Button asChild variant="secondary">
-          <Link to="/developer/programs"><ArrowLeft className="h-4 w-4 mr-2" />Back to programs</Link>
+          <Link to="/researcher/programs"><ArrowLeft className="h-4 w-4 mr-2" />Back to programs</Link>
         </Button>
       </div>
     );
@@ -24,7 +36,7 @@ export default function ProgramDetails() {
   return (
     <div>
       <Button asChild variant="ghost" size="sm" className="mb-4 -ml-2">
-        <Link to="/developer/programs"><ArrowLeft className="h-4 w-4 mr-2" />Back to programs</Link>
+        <Link to="/researcher/programs"><ArrowLeft className="h-4 w-4 mr-2" />Back to programs</Link>
       </Button>
 
       <PageHeader
@@ -32,7 +44,7 @@ export default function ProgramDetails() {
         description={program.organization}
         actions={
           <Button asChild>
-            <Link to="/developer/submit-report">Submit a report</Link>
+            <Link to={`/researcher/submit-report?programId=${program.id}`}>Submit a report</Link>
           </Button>
         }
       />

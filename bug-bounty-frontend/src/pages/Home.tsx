@@ -7,7 +7,7 @@ import { useAuthStore } from "@/features/auth";
 export default function Home() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const role = useAuthStore((state) => state.user?.role);
-  const dashboardPath = role === "organization" ? "/organization/dashboard" : "/developer/dashboard";
+  const dashboardPath = role === "organization" ? "/organization/dashboard" : "/researcher/dashboard";
 
   return (
     <div className="min-h-screen bg-background text-foreground">
@@ -58,7 +58,7 @@ export default function Home() {
                 </Link>
               </Button>
               <Button asChild size="lg" variant="outline">
-                <Link to={isAuthenticated ? "/developer/programs" : "/login"}>Browse programs</Link>
+                <Link to={isAuthenticated ? "/researcher/programs" : "/login"}>Browse programs</Link>
               </Button>
             </div>
           </div>

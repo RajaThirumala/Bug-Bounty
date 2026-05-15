@@ -17,7 +17,7 @@ export default function Login() {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   const redirectForRole = (role: "developer" | "organization") => {
-    navigate(role === "organization" ? "/organization/dashboard" : "/developer/dashboard", {
+    navigate(role === "organization" ? "/organization/dashboard" : "/researcher/dashboard", {
       replace: true,
     });
   };
@@ -29,6 +29,10 @@ export default function Login() {
 
     try {
       const user = await signIn(email, password);
+      if (!user.onboardingCompleted) {
+        navigate("/onboarding", { replace: true });
+        return;
+      }
       redirectForRole(user.role);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to sign in");

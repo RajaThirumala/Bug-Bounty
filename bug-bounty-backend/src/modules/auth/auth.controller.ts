@@ -2,8 +2,19 @@ import { supabase } from "../../config/supabase.js";
 import type { Profile } from "../../db/schema/index.js";
 import { asyncHandler } from "../../utils/asyncHandler.js";
 import { ApiError } from "../../utils/apiError.js";
-import { completeOAuthUser, loginUser, registerUser } from "./auth.service.js";
-import { loginSchema, oauthCompleteSchema, registerSchema } from "./auth.validation.js";
+import {
+  completeOAuthUser,
+  completeOrganizationOnboarding,
+  completeResearcherOnboarding,
+  loginUser,
+  registerUser,
+} from "./auth.service.js";
+import {
+  createOrganizationSchema,
+  loginSchema,
+  oauthCompleteSchema,
+  registerSchema,
+} from "./auth.validation.js";
 
 export const register = asyncHandler(async (req, res) => {
   const input = registerSchema.parse(req.body);
@@ -34,6 +45,29 @@ export const completeOAuth = asyncHandler(async (req, res) => {
 
 export const me = asyncHandler(async (req, res) => {
   res.json({ user: req.user });
+});
+
+export const chooseResearcher = asyncHandler(async (req, res) => {
+  if (!req.user) {
+    throw new ApiError(401, "Authentication required");
+  }
+
+  const profile = await completeResearcherOnboarding(req.user.id);
+  res.json({ user: toUserResponse(req.user, profile) });
+});
+
+export const createOrganization = asyncHandler(async (req, res) => {
+  if (!req.user) {
+    throw new ApiError(401, "Authentication required");
+  }
+
+  const input = createOrganizationSchema.parse(req.body);
+  const { organization, profile } = await completeOrganizationOnboarding(req.user.id, input);
+
+  res.status(201).json({
+    organization,
+    user: toUserResponse(req.user, profile),
+  });
 });
 
 export const refresh = asyncHandler(async (req, res) => {
@@ -81,5 +115,18 @@ const toAuthResponse = ({
     fullName: profile.fullName,
     username: profile.username,
     role: profile.primaryRole,
+    onboardingCompleted: profile.onboardingCompleted,
   },
+});
+
+const toUserResponse = (
+  authUser: { id: string; email?: string },
+  profile: Profile,
+) => ({
+  id: authUser.id,
+  email: authUser.email,
+  fullName: profile.fullName,
+  username: profile.username,
+  role: profile.primaryRole,
+  onboardingCompleted: profile.onboardingCompleted,
 });

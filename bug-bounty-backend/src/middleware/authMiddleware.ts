@@ -22,6 +22,7 @@ export const requireAuth = asyncHandler(async (req, _res, next) => {
     fullName: profile.fullName,
     username: profile.username,
     role: profile.primaryRole,
+    onboardingCompleted: profile.onboardingCompleted,
   };
 
   next();

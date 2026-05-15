@@ -1,103 +1,109 @@
 {
-  "hash": "fb73de59",
+  "hash": "cba16243",
   "configHash": "c6156d2f",
-  "lockfileHash": "d6319b27",
-  "browserHash": "a58a201e",
+  "lockfileHash": "6cf9d17e",
+  "browserHash": "f9ee2053",
   "optimized": {
     "@radix-ui/react-avatar": {
       "src": "../../node_modules/@radix-ui/react-avatar/dist/index.mjs",
       "file": "@radix-ui_react-avatar.js",
-      "fileHash": "4de4dec4",
+      "fileHash": "7d957248",
       "needsInterop": false
     },
     "@radix-ui/react-label": {
       "src": "../../node_modules/@radix-ui/react-label/dist/index.mjs",
       "file": "@radix-ui_react-label.js",
-      "fileHash": "c03fc9a8",
+      "fileHash": "a1fedccf",
       "needsInterop": false
     },
     "@radix-ui/react-select": {
       "src": "../../node_modules/@radix-ui/react-select/dist/index.mjs",
       "file": "@radix-ui_react-select.js",
-      "fileHash": "b036b63a",
+      "fileHash": "1a6259b8",
       "needsInterop": false
     },
     "@radix-ui/react-slot": {
       "src": "../../node_modules/@radix-ui/react-slot/dist/index.mjs",
       "file": "@radix-ui_react-slot.js",
-      "fileHash": "f1b1b372",
+      "fileHash": "63e442ad",
+      "needsInterop": false
+    },
+    "@supabase/supabase-js": {
+      "src": "../../node_modules/@supabase/supabase-js/dist/index.mjs",
+      "file": "@supabase_supabase-js.js",
+      "fileHash": "ad897c9e",
       "needsInterop": false
     },
     "@tanstack/react-query": {
       "src": "../../node_modules/@tanstack/react-query/build/modern/index.js",
       "file": "@tanstack_react-query.js",
-      "fileHash": "31c1a574",
+      "fileHash": "de3949ee",
       "needsInterop": false
     },
     "class-variance-authority": {
       "src": "../../node_modules/class-variance-authority/dist/index.mjs",
       "file": "class-variance-authority.js",
-      "fileHash": "a73d1cc9",
+      "fileHash": "f72f6a51",
       "needsInterop": false
     },
     "clsx": {
       "src": "../../node_modules/clsx/dist/clsx.mjs",
       "file": "clsx.js",
-      "fileHash": "a34b0f14",
+      "fileHash": "f05570f5",
       "needsInterop": false
     },
     "lucide-react": {
       "src": "../../node_modules/lucide-react/dist/esm/lucide-react.js",
       "file": "lucide-react.js",
-      "fileHash": "eda8a407",
+      "fileHash": "8a8813c8",
       "needsInterop": false
     },
     "react-dom": {
       "src": "../../node_modules/react-dom/index.js",
       "file": "react-dom.js",
-      "fileHash": "93aea446",
+      "fileHash": "63e9f5af",
       "needsInterop": true
     },
     "react-dom/client": {
       "src": "../../node_modules/react-dom/client.js",
       "file": "react-dom_client.js",
-      "fileHash": "570a0e62",
+      "fileHash": "1e1486e4",
       "needsInterop": true
     },
     "react-router-dom": {
       "src": "../../node_modules/react-router-dom/dist/index.mjs",
       "file": "react-router-dom.js",
-      "fileHash": "16a6f3b4",
+      "fileHash": "c2a9656c",
       "needsInterop": false
     },
     "react": {
       "src": "../../node_modules/react/index.js",
       "file": "react.js",
-      "fileHash": "50fabc67",
+      "fileHash": "94acaf8f",
       "needsInterop": true
     },
     "react/jsx-dev-runtime": {
       "src": "../../node_modules/react/jsx-dev-runtime.js",
       "file": "react_jsx-dev-runtime.js",
-      "fileHash": "baf57272",
+      "fileHash": "16a21e11",
       "needsInterop": true
     },
     "react/jsx-runtime": {
       "src": "../../node_modules/react/jsx-runtime.js",
       "file": "react_jsx-runtime.js",
-      "fileHash": "f2f59a4b",
+      "fileHash": "2e33ac29",
       "needsInterop": true
     },
     "tailwind-merge": {
       "src": "../../node_modules/tailwind-merge/dist/bundle-mjs.mjs",
       "file": "tailwind-merge.js",
-      "fileHash": "1ee3f994",
+      "fileHash": "ad2cdf10",
       "needsInterop": false
     },
     "zustand": {
       "src": "../../node_modules/zustand/esm/index.mjs",
       "file": "zustand.js",
-      "fileHash": "36f10e04",
+      "fileHash": "cb0438db",
       "needsInterop": false
     }
   },
@@ -112,6 +118,10 @@
     },
     "react-BDWiK9rz": {
       "file": "react-BDWiK9rz.js",
+      "isDynamicEntry": false
+    },
+    "tslib.es6-DPGERICa": {
+      "file": "tslib.es6-DPGERICa.js",
       "isDynamicEntry": false
     }
   }

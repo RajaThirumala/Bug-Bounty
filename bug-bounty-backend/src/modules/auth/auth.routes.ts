@@ -2,7 +2,9 @@ import { Router } from "express";
 
 import { requireAuth } from "../../middleware/authMiddleware.js";
 import {
+  chooseResearcher,
   completeOAuth,
+  createOrganization,
   login,
   logout,
   me,
@@ -18,3 +20,5 @@ authRouter.post("/oauth/complete", completeOAuth);
 authRouter.post("/refresh", refresh);
 authRouter.post("/logout", logout);
 authRouter.get("/me", requireAuth, me);
+authRouter.post("/onboarding/researcher", requireAuth, chooseResearcher);
+authRouter.post("/onboarding/organization", requireAuth, createOrganization);

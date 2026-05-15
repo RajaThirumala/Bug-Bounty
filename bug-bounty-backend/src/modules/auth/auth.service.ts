@@ -2,9 +2,9 @@ import { eq } from "drizzle-orm";
 
 import { supabase } from "../../config/supabase.js";
 import { db } from "../../db/index.js";
-import { profiles } from "../../db/schema/index.js";
+import { organizationMembers, organizations, profiles } from "../../db/schema/index.js";
 import { ApiError } from "../../utils/apiError.js";
-import type { LoginInput, OAuthCompleteInput, RegisterInput } from "./auth.validation.js";
+import type { CreateOrganizationInput, LoginInput, OAuthCompleteInput, RegisterInput } from "./auth.validation.js";
 
 export const registerUser = async (input: RegisterInput) => {
   const { data, error } = await supabase.auth.signUp({
@@ -13,7 +13,6 @@ export const registerUser = async (input: RegisterInput) => {
     options: {
       data: {
         full_name: input.name,
-        primary_role: input.role,
       },
     },
   });
@@ -31,14 +30,16 @@ export const registerUser = async (input: RegisterInput) => {
       id: data.user.id,
       fullName: input.name,
       username: input.username,
-      primaryRole: input.role,
+      primaryRole: input.role ?? "researcher",
+      onboardingCompleted: false,
     })
     .onConflictDoUpdate({
       target: profiles.id,
       set: {
         fullName: input.name,
         username: input.username,
-        primaryRole: input.role,
+        primaryRole: input.role ?? "researcher",
+        onboardingCompleted: false,
         updatedAt: new Date(),
       },
     })
@@ -89,11 +90,74 @@ export const completeOAuthUser = async (token: string, input: OAuthCompleteInput
       id: authUser.id,
       fullName,
       avatarUrl,
-      primaryRole: input.role,
+      primaryRole: input.role ?? "researcher",
+      onboardingCompleted: false,
     })
     .returning();
 
   return { authUser, profile };
+};
+
+export const completeResearcherOnboarding = async (profileId: string) => {
+  const [profile] = await db
+    .update(profiles)
+    .set({
+      primaryRole: "researcher",
+      onboardingCompleted: true,
+      updatedAt: new Date(),
+    })
+    .where(eq(profiles.id, profileId))
+    .returning();
+
+  if (!profile) {
+    throw new ApiError(404, "Profile not found");
+  }
+
+  return profile;
+};
+
+export const completeOrganizationOnboarding = async (
+  profileId: string,
+  input: CreateOrganizationInput,
+) => {
+  const slug = await createUniqueOrganizationSlug(input.name);
+
+  return db.transaction(async (tx) => {
+    const [organization] = await tx
+      .insert(organizations)
+      .values({
+        name: input.name,
+        slug,
+        ownerId: profileId,
+      })
+      .returning();
+
+    if (!organization) {
+      throw new ApiError(400, "Unable to create organization");
+    }
+
+    await tx.insert(organizationMembers).values({
+      organizationId: organization.id,
+      profileId,
+      role: "owner",
+    });
+
+    const [profile] = await tx
+      .update(profiles)
+      .set({
+        primaryRole: "organization_owner",
+        onboardingCompleted: true,
+        updatedAt: new Date(),
+      })
+      .where(eq(profiles.id, profileId))
+      .returning();
+
+    if (!profile) {
+      throw new ApiError(404, "Profile not found");
+    }
+
+    return { organization, profile };
+  });
 };
 
 export const findProfileById = async (id: string) => {
@@ -108,4 +172,33 @@ export const getAuthUserFromToken = async (token: string) => {
     throw new ApiError(401, "Invalid Supabase access token");
   }
   return data.user;
+};
+
+const createUniqueOrganizationSlug = async (name: string) => {
+  const baseSlug = slugify(name);
+  let slug = baseSlug;
+  let suffix = 1;
+
+  while (await findOrganizationBySlug(slug)) {
+    suffix += 1;
+    slug = `${baseSlug}-${suffix}`;
+  }
+
+  return slug;
+};
+
+const findOrganizationBySlug = async (slug: string) => {
+  return db.query.organizations.findFirst({
+    where: eq(organizations.slug, slug),
+  });
+};
+
+const slugify = (value: string) => {
+  const slug = value
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "");
+
+  return slug || `organization-${Date.now()}`;
 };

@@ -1,11 +1,14 @@
 import { Link } from "react-router-dom";
 import { Search } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { PageHeader } from "@/components/common/PageHeader";
-import { mockPrograms, type ProgramStatus } from "@/features/programs";
+import { EmptyState } from "@/components/common/EmptyState";
+import { getResearcherPrograms, type ProgramStatus } from "@/features/programs";
+import { useAuthStore } from "@/features/auth";
 
 const statusVariant: Record<ProgramStatus, { label: string; className: string }> = {
   active: { label: "Active", className: "bg-success/10 text-success border-success/20" },
@@ -14,6 +17,14 @@ const statusVariant: Record<ProgramStatus, { label: string; className: string }>
 };
 
 export default function Programs() {
+  const accessToken = useAuthStore((state) => state.accessToken);
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["researcher-programs"],
+    queryFn: () => getResearcherPrograms(accessToken ?? ""),
+    enabled: Boolean(accessToken),
+  });
+  const programs = data?.programs ?? [];
+
   return (
     <div>
       <PageHeader
@@ -26,8 +37,18 @@ export default function Programs() {
         <Input placeholder="Search programs..." className="pl-9 bg-card" />
       </div>
 
+      {isLoading && <p className="text-sm text-muted-foreground">Loading programs...</p>}
+      {error && <p className="text-sm text-destructive">Unable to load programs.</p>}
+
+      {!isLoading && !error && programs.length === 0 && (
+        <EmptyState
+          title="No programs available"
+          description="Active organization programs will appear here."
+        />
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-        {mockPrograms.map((p) => {
+        {programs.map((p) => {
           const s = statusVariant[p.status];
           return (
             <Card
@@ -51,7 +72,7 @@ export default function Programs() {
                     </p>
                   </div>
                   <Button asChild size="sm" variant="secondary">
-                    <Link to={`/developer/programs/${p.id}`}>View details</Link>
+                    <Link to={`/researcher/programs/${p.id}`}>View details</Link>
                   </Button>
                 </div>
               </CardContent>

@@ -15,6 +15,34 @@
       "when": 1778760000000,
       "tag": "0001_auto_profiles",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1778760300000,
+      "tag": "0002_onboarding_organizations",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1778760600000,
+      "tag": "0003_programs",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1778760900000,
+      "tag": "0004_reports",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1778761200000,
+      "tag": "0005_feature_requests",
+      "breakpoints": true
     }
   ]
 }

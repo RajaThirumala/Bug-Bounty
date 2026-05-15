@@ -1,25 +1,41 @@
 import { ClipboardList, FileText, Lightbulb, ShieldCheck } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import { PageHeader } from "@/components/common/PageHeader";
 import { StatCard } from "@/components/common/StatCard";
 import { Card, CardContent } from "@/components/ui/card";
-import { mockPrograms } from "@/features/programs";
-import { mockReports } from "@/features/reports";
-import { mockFeatureRequests } from "@/features/featureRequests";
+import { getOrganizationPrograms } from "@/features/programs";
+import { getOrganizationReports } from "@/features/reports";
+import { getOrganizationFeatureRequests } from "@/features/featureRequests";
 import { useAuthStore } from "@/features/auth";
 
 export default function OrganizationDashboard() {
   const user = useAuthStore((state) => state.user);
-  const organizationId = "org-acme";
-  const myPrograms = mockPrograms.filter((program) => program.organizationId === organizationId);
-  const myProgramIds = myPrograms.map((program) => program.id);
-  const submittedReports = mockReports.filter((report) => myProgramIds.includes(report.programId));
-  const requests = mockFeatureRequests.filter((request) => request.organizationId === organizationId);
+  const accessToken = useAuthStore((state) => state.accessToken);
+  const { data } = useQuery({
+    queryKey: ["organization-programs"],
+    queryFn: () => getOrganizationPrograms(accessToken ?? ""),
+    enabled: Boolean(accessToken),
+  });
+  const { data: reportsData } = useQuery({
+    queryKey: ["organization-reports"],
+    queryFn: () => getOrganizationReports(accessToken ?? ""),
+    enabled: Boolean(accessToken),
+  });
+  const { data: featureRequestsData } = useQuery({
+    queryKey: ["organization-feature-requests"],
+    queryFn: () => getOrganizationFeatureRequests(accessToken ?? ""),
+    enabled: Boolean(accessToken),
+  });
+  const myPrograms = data?.programs ?? [];
+  const organizationName = data?.organization.name ?? user?.title ?? "your organization";
+  const submittedReports = reportsData?.reports ?? [];
+  const requests = featureRequestsData?.featureRequests ?? [];
 
   return (
     <div>
       <PageHeader
         title="Organization Dashboard"
-        description={`Manage programs, reports, and feature requests for ${user?.title ?? "your organization"}.`}
+        description={`Manage programs, reports, and feature requests for ${organizationName}.`}
       />
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">

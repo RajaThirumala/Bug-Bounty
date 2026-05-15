@@ -13,6 +13,7 @@ export interface AuthUser {
   handle: string | null;
   role: UserRole;
   backendRole: BackendRole;
+  onboardingCompleted: boolean;
   title: string;
   initials: string;
 }

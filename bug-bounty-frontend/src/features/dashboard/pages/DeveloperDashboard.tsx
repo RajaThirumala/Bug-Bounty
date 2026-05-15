@@ -1,22 +1,39 @@
 import { Activity, CheckCircle2, FileText, Lightbulb, ShieldCheck } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent } from "@/components/ui/card";
 import { PageHeader } from "@/components/common/PageHeader";
 import { StatCard } from "@/components/common/StatCard";
 import { EmptyState } from "@/components/common/EmptyState";
-import { mockPrograms } from "@/features/programs";
-import { mockReports } from "@/features/reports";
-import { mockFeatureRequests } from "@/features/featureRequests";
+import { getResearcherPrograms } from "@/features/programs";
+import { getResearcherReports } from "@/features/reports";
+import { getResearcherFeatureRequests } from "@/features/featureRequests";
 import { useAuthStore } from "@/features/auth";
 
 export default function DeveloperDashboard() {
   const user = useAuthStore((state) => state.user);
-  const myReports = mockReports.filter((report) => report.developerId === user?.id);
+  const accessToken = useAuthStore((state) => state.accessToken);
+  const { data: programsData } = useQuery({
+    queryKey: ["researcher-programs"],
+    queryFn: () => getResearcherPrograms(accessToken ?? ""),
+    enabled: Boolean(accessToken),
+  });
+  const { data: reportsData } = useQuery({
+    queryKey: ["researcher-reports"],
+    queryFn: () => getResearcherReports(accessToken ?? ""),
+    enabled: Boolean(accessToken),
+  });
+  const { data: featureRequestsData } = useQuery({
+    queryKey: ["researcher-feature-requests"],
+    queryFn: () => getResearcherFeatureRequests(accessToken ?? ""),
+    enabled: Boolean(accessToken),
+  });
+  const myReports = reportsData?.reports ?? [];
   const acceptedReports = myReports.filter((report) => report.status === "resolved");
 
   return (
     <div>
       <PageHeader
-        title="Developer Dashboard"
+        title="Researcher Dashboard"
         description={`Welcome back, ${user?.name ?? "researcher"}. Here's a snapshot of your bug bounty activity.`}
       />
 
@@ -30,10 +47,10 @@ export default function DeveloperDashboard() {
       </Card>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-        <StatCard label="Programs" value={mockPrograms.length} icon={<ShieldCheck className="h-4 w-4" />} />
+        <StatCard label="Programs" value={programsData?.programs.length ?? 0} icon={<ShieldCheck className="h-4 w-4" />} />
         <StatCard label="My Reports" value={myReports.length} icon={<FileText className="h-4 w-4" />} />
         <StatCard label="Resolved" value={acceptedReports.length} icon={<CheckCircle2 className="h-4 w-4" />} />
-        <StatCard label="Feature Requests" value={mockFeatureRequests.length} icon={<Lightbulb className="h-4 w-4" />} />
+        <StatCard label="Feature Requests" value={featureRequestsData?.featureRequests.length ?? 0} icon={<Lightbulb className="h-4 w-4" />} />
       </div>
 
       <div className="mb-3 flex items-center gap-2">

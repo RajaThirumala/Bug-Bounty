@@ -10,7 +10,7 @@ export const registerSchema = z.object({
       "researcher",
       "organization_owner",
     ])
-    .default("researcher"),
+    .optional(),
 });
 
 export const loginSchema = z.object({
@@ -24,9 +24,17 @@ export const oauthCompleteSchema = z.object({
       "researcher",
       "organization_owner",
     ])
-    .default("researcher"),
+    .optional(),
+});
+
+export const chooseResearcherSchema = z.object({});
+
+export const createOrganizationSchema = z.object({
+  name: z.string().trim().min(2).max(120),
 });
 
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type LoginInput = z.infer<typeof loginSchema>;
 export type OAuthCompleteInput = z.infer<typeof oauthCompleteSchema>;
+export type ChooseResearcherInput = z.infer<typeof chooseResearcherSchema>;
+export type CreateOrganizationInput = z.infer<typeof createOrganizationSchema>;

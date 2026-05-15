@@ -14,11 +14,11 @@ import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/features/auth";
 
 const developerItems = [
-  { to: "/developer/dashboard", label: "Dashboard", icon: LayoutDashboard },
-  { to: "/developer/programs", label: "Programs", icon: ShieldCheck },
-  { to: "/developer/reports", label: "My Reports", icon: FileText },
-  { to: "/developer/submit-report", label: "Submit Report", icon: Send },
-  { to: "/developer/feature-requests", label: "Feature Requests", icon: Lightbulb },
+  { to: "/researcher/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { to: "/researcher/programs", label: "Programs", icon: ShieldCheck },
+  { to: "/researcher/reports", label: "My Reports", icon: FileText },
+  { to: "/researcher/submit-report", label: "Submit Report", icon: Send },
+  { to: "/researcher/feature-requests", label: "Feature Requests", icon: Lightbulb },
   { to: "/profile", label: "Profile", icon: User },
 ];
 
@@ -34,7 +34,7 @@ const organizationItems = [
 export function Sidebar() {
   const { pathname } = useLocation();
   const role = useAuthStore((state) => state.user?.role ?? "developer");
-  const homePath = role === "organization" ? "/organization/dashboard" : "/developer/dashboard";
+  const homePath = role === "organization" ? "/organization/dashboard" : "/researcher/dashboard";
   const items = role === "organization" ? organizationItems : developerItems;
 
   return (

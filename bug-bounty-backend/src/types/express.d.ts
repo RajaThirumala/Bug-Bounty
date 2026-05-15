@@ -9,6 +9,7 @@ declare global {
         fullName: Profile["fullName"];
         username: Profile["username"];
         role: Profile["primaryRole"];
+        onboardingCompleted: Profile["onboardingCompleted"];
       };
     }
   }

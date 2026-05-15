@@ -10,6 +10,7 @@ type BackendAuthUser = {
   fullName: string;
   username: string | null;
   role: BackendRole;
+  onboardingCompleted: boolean;
 };
 
 type AuthResponse = {
@@ -34,6 +35,8 @@ interface AuthState {
   }) => Promise<AuthUser>;
   signInWithOAuth: (provider: "google" | "github", role?: UserRole) => Promise<void>;
   completeOAuthSignIn: () => Promise<AuthUser>;
+  chooseResearcher: () => Promise<AuthUser>;
+  createOrganization: (name: string) => Promise<AuthUser>;
   signOut: () => Promise<void>;
   setRole: (role: UserRole) => void;
 }
@@ -64,7 +67,8 @@ const toAuthUser = (user: BackendAuthUser): AuthUser => {
     handle: user.username ? `@${user.username}` : null,
     role,
     backendRole: user.role,
-    title: role === "organization" ? "Organization member" : "Security researcher",
+    onboardingCompleted: user.onboardingCompleted,
+    title: user.role === "organization_owner" ? "Organization owner" : role === "organization" ? "Organization member" : "Security researcher",
     initials: initials || "U",
   };
 };
@@ -174,7 +178,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     const response = await apiRequest<{ user: BackendAuthUser }>("/api/auth/oauth/complete", {
       method: "POST",
       accessToken: data.session.access_token,
-      body: JSON.stringify({ role: oauthRole ?? "researcher" }),
+      body: JSON.stringify(oauthRole ? { role: oauthRole } : {}),
     });
     const user = toAuthUser(response.user);
 
@@ -184,6 +188,38 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       accessToken: data.session.access_token,
       user,
     });
+    return user;
+  },
+  chooseResearcher: async () => {
+    const accessToken = get().accessToken;
+    if (!accessToken) {
+      throw new Error("Authentication required");
+    }
+
+    const response = await apiRequest<{ user: BackendAuthUser }>("/api/auth/onboarding/researcher", {
+      method: "POST",
+      accessToken,
+      body: JSON.stringify({}),
+    });
+
+    const user = toAuthUser(response.user);
+    set({ user, isAuthenticated: true, isLoading: false });
+    return user;
+  },
+  createOrganization: async (name) => {
+    const accessToken = get().accessToken;
+    if (!accessToken) {
+      throw new Error("Authentication required");
+    }
+
+    const response = await apiRequest<{ user: BackendAuthUser }>("/api/auth/onboarding/organization", {
+      method: "POST",
+      accessToken,
+      body: JSON.stringify({ name }),
+    });
+
+    const user = toAuthUser(response.user);
+    set({ user, isAuthenticated: true, isLoading: false });
     return user;
   },
   signOut: async () => {
@@ -201,6 +237,7 @@ export const useAuthStore = create<AuthState>((set, get) => ({
         ...user,
         role,
         backendRole: roleToBackend(role),
+        onboardingCompleted: user.onboardingCompleted,
       },
     });
   },

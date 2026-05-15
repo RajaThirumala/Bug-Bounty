@@ -5,8 +5,9 @@ export const mockReports: Report[] = [
   {
     id: "report-001",
     programId: "acme-web",
-    developerId: "user-jane-developer",
+    researcherId: "user-jane-developer",
     title: "Stored XSS in profile bio",
+    summary: "Stored XSS in profile bio.",
     severity: "high",
     status: "triaged",
     submittedAt: "2026-04-28",
@@ -14,8 +15,9 @@ export const mockReports: Report[] = [
   {
     id: "report-002",
     programId: "northwind-api",
-    developerId: "user-jane-developer",
+    researcherId: "user-jane-developer",
     title: "Broken object authorization on shipment lookup",
+    summary: "Broken object authorization on shipment lookup.",
     severity: "critical",
     status: "submitted",
     submittedAt: "2026-05-01",
@@ -23,8 +25,9 @@ export const mockReports: Report[] = [
   {
     id: "report-003",
     programId: "acme-web",
-    developerId: "user-sam-developer",
+    researcherId: "user-sam-developer",
     title: "Missing rate limit on password reset",
+    summary: "Missing rate limit on password reset.",
     severity: "medium",
     status: "resolved",
     submittedAt: "2026-04-20",

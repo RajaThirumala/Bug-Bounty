@@ -5,14 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { useAuthStore, type UserRole } from "@/features/auth";
+import { useAuthStore } from "@/features/auth";
 
 export default function Register() {
   const navigate = useNavigate();
@@ -21,7 +14,6 @@ export default function Register() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState<UserRole>("developer");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -31,10 +23,8 @@ export default function Register() {
     setIsSubmitting(true);
 
     try {
-      const user = await register({ name, email, password, role });
-      navigate(user.role === "organization" ? "/organization/dashboard" : "/developer/dashboard", {
-        replace: true,
-      });
+      await register({ name, email, password, role: "developer" });
+      navigate("/onboarding", { replace: true });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to create account");
     } finally {
@@ -45,7 +35,7 @@ export default function Register() {
   const handleGitHubSignup = async () => {
     setError("");
     try {
-      await signInWithOAuth("github", role);
+      await signInWithOAuth("github");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unable to start GitHub signup");
     }
@@ -88,18 +78,6 @@ export default function Register() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
-            </div>
-            <div className="space-y-1.5">
-              <Label htmlFor="role">Account type</Label>
-              <Select value={role} onValueChange={(value) => setRole(value as UserRole)}>
-                <SelectTrigger id="role">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="developer">Developer</SelectItem>
-                  <SelectItem value="organization">Organization</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
             {error && <p className="text-sm text-destructive">{error}</p>}
             <Button type="submit" className="w-full" disabled={isSubmitting}>

@@ -1,13 +1,23 @@
 import { Link } from "react-router-dom";
 import { Plus } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { PageHeader } from "@/components/common/PageHeader";
-import { mockPrograms } from "@/features/programs";
+import { EmptyState } from "@/components/common/EmptyState";
+import { getOrganizationPrograms } from "@/features/programs";
+import { useAuthStore } from "@/features/auth";
 
 export default function OrganizationPrograms() {
-  const programs = mockPrograms.filter((program) => program.organizationId === "org-acme");
+  const accessToken = useAuthStore((state) => state.accessToken);
+  const { data, isLoading, error } = useQuery({
+    queryKey: ["organization-programs"],
+    queryFn: () => getOrganizationPrograms(accessToken ?? ""),
+    enabled: Boolean(accessToken),
+  });
+
+  const programs = data?.programs ?? [];
 
   return (
     <div>
@@ -20,6 +30,21 @@ export default function OrganizationPrograms() {
           </Button>
         }
       />
+
+      {isLoading && <p className="text-sm text-muted-foreground">Loading programs...</p>}
+      {error && <p className="text-sm text-destructive">Unable to load programs.</p>}
+
+      {!isLoading && !error && programs.length === 0 && (
+        <EmptyState
+          title="No programs yet"
+          description="Create your first bounty program for researchers to view."
+          action={
+            <Button asChild>
+              <Link to="/organization/programs/new">Create program</Link>
+            </Button>
+          }
+        />
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         {programs.map((program) => (
