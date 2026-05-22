@@ -1,8 +1,7 @@
-export type UserRole = "developer" | "organization";
+export type UserRole = "developer" | "organization" | "triager";
 export type BackendRole =
   | "researcher"
   | "organization_owner"
-  | "organization_member"
   | "triager"
   | "platform_admin";
 

@@ -3,7 +3,7 @@ import { and, eq, inArray, ne } from "drizzle-orm";
 import { db } from "../../db/index.js";
 import { organizations, programs, reports } from "../../db/schema/index.js";
 import { ApiError } from "../../utils/apiError.js";
-import { requireCurrentOrganization } from "../programs/programs.service.js";
+import { requireReviewOrganization } from "../programs/programs.service.js";
 import type { CreateReportInput, UpdateReportStatusInput } from "./reports.validation.js";
 
 export const createResearcherReport = async (
@@ -62,7 +62,7 @@ export const listResearcherReports = async (researcherId: string) => {
 };
 
 export const listOrganizationReports = async (profileId: string) => {
-  const organization = await requireCurrentOrganization(profileId);
+  const organization = await requireReviewOrganization(profileId);
   const organizationPrograms = await db.query.programs.findMany({
     where: eq(programs.organizationId, organization.id),
   });
@@ -101,7 +101,7 @@ export const updateOrganizationReportStatus = async (
   reportId: string,
   input: UpdateReportStatusInput,
 ) => {
-  const organization = await requireCurrentOrganization(profileId);
+  const organization = await requireReviewOrganization(profileId);
   const [ownedReport] = await db
     .select({
       id: reports.id,
@@ -120,6 +120,7 @@ export const updateOrganizationReportStatus = async (
     .update(reports)
     .set({
       status: input.status,
+      ...(input.severity ? { severity: input.severity } : {}),
       updatedAt: new Date(),
     })
     .where(eq(reports.id, reportId))

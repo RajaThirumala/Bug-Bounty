@@ -9,6 +9,7 @@ export const createReportSchema = z.object({
 
 export const updateReportStatusSchema = z.object({
   status: z.enum(["submitted", "triaged", "resolved", "rejected"]),
+  severity: z.enum(["low", "medium", "high", "critical"]).optional(),
 });
 
 export type CreateReportInput = z.infer<typeof createReportSchema>;

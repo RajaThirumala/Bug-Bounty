@@ -15,9 +15,14 @@ export default function AuthCallback() {
           return;
         }
 
-        navigate(user.role === "organization" ? "/organization/dashboard" : "/researcher/dashboard", {
-          replace: true,
-        });
+        navigate(
+          user.role === "organization"
+            ? "/organization/dashboard"
+            : user.role === "triager"
+              ? "/triager/dashboard"
+              : "/researcher/dashboard",
+          { replace: true },
+        );
       })
       .catch((err) => {
         setError(err instanceof Error ? err.message : "OAuth sign in failed");

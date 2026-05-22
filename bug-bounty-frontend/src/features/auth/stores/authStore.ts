@@ -42,12 +42,14 @@ interface AuthState {
 }
 
 const roleToBackend = (role: UserRole): BackendRole =>
-  role === "organization" ? "organization_owner" : "researcher";
+  role === "organization" ? "organization_owner" : role === "triager" ? "triager" : "researcher";
 
 const roleFromBackend = (role: BackendRole): UserRole =>
-  role === "organization_owner" || role === "organization_member" || role === "triager"
+  role === "organization_owner"
     ? "organization"
-    : "developer";
+    : role === "triager"
+      ? "triager"
+      : "developer";
 
 const toAuthUser = (user: BackendAuthUser): AuthUser => {
   const name = user.fullName || user.email;
@@ -68,7 +70,12 @@ const toAuthUser = (user: BackendAuthUser): AuthUser => {
     role,
     backendRole: user.role,
     onboardingCompleted: user.onboardingCompleted,
-    title: user.role === "organization_owner" ? "Organization owner" : role === "organization" ? "Organization member" : "Security researcher",
+    title:
+      user.role === "organization_owner"
+        ? "Organization owner"
+        : user.role === "triager"
+          ? "Security triager"
+          : "Security researcher",
     initials: initials || "U",
   };
 };

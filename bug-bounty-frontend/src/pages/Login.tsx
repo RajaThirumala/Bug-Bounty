@@ -16,8 +16,8 @@ export default function Login() {
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const redirectForRole = (role: "developer" | "organization") => {
-    navigate(role === "organization" ? "/organization/dashboard" : "/researcher/dashboard", {
+  const redirectForRole = (role: "developer" | "organization" | "triager") => {
+    navigate(role === "organization" ? "/organization/dashboard" : role === "triager" ? "/triager/dashboard" : "/researcher/dashboard", {
       replace: true,
     });
   };

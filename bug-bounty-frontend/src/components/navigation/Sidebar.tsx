@@ -8,6 +8,7 @@ import {
   Lightbulb,
   Send,
   ShieldCheck,
+  Users,
   User,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -28,14 +29,31 @@ const organizationItems = [
   { to: "/organization/programs/new", label: "Create Program", icon: FilePlus2 },
   { to: "/organization/reports", label: "Reports", icon: ClipboardList },
   { to: "/organization/feature-requests", label: "Feature Requests", icon: Lightbulb },
+  { to: "/organization/triagers", label: "Triagers", icon: Users },
+  { to: "/profile", label: "Profile", icon: User },
+];
+
+const triagerItems = [
+  { to: "/triager/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  { to: "/triager/reports", label: "Reports", icon: ClipboardList },
   { to: "/profile", label: "Profile", icon: User },
 ];
 
 export function Sidebar() {
   const { pathname } = useLocation();
   const role = useAuthStore((state) => state.user?.role ?? "developer");
-  const homePath = role === "organization" ? "/organization/dashboard" : "/researcher/dashboard";
-  const items = role === "organization" ? organizationItems : developerItems;
+  const homePath =
+    role === "organization"
+      ? "/organization/dashboard"
+      : role === "triager"
+        ? "/triager/dashboard"
+        : "/researcher/dashboard";
+  const items =
+    role === "organization"
+      ? organizationItems
+      : role === "triager"
+        ? triagerItems
+        : developerItems;
 
   return (
     <aside className="hidden md:flex w-60 shrink-0 border-r border-sidebar-border bg-sidebar flex-col">

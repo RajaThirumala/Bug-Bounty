@@ -25,9 +25,10 @@ export const updateReportStatus = (
   accessToken: string,
   reportId: string,
   status: ReportStatus,
+  severity?: ReportSeverity,
 ) =>
   apiRequest<{ report: Report }>(`/api/organization/reports/${reportId}/status`, {
     method: "PATCH",
     accessToken,
-    body: JSON.stringify({ status }),
+    body: JSON.stringify({ status, severity }),
   });

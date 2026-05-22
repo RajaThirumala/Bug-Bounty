@@ -10,6 +10,7 @@ import { authRouter } from "./modules/auth/auth.routes.js";
 import { featureRequestsRouter } from "./modules/featureRequests/featureRequests.routes.js";
 import { programsRouter } from "./modules/programs/programs.routes.js";
 import { reportsRouter } from "./modules/reports/reports.routes.js";
+import { teamRouter } from "./modules/team/team.routes.js";
 
 export const app = express();
 const allowedOrigins = env.CLIENT_URL.split(",").map((origin) => origin.trim());
@@ -33,6 +34,7 @@ app.use("/api/auth", authRouter);
 app.use("/api", programsRouter);
 app.use("/api", reportsRouter);
 app.use("/api", featureRequestsRouter);
+app.use("/api", teamRouter);
 
 app.use(notFoundHandler);
 app.use(errorHandler);

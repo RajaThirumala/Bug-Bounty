@@ -19,7 +19,7 @@ export const userRole = pgEnum("user_role", [
 
 export const organizationMemberRole = pgEnum("organization_member_role", [
   "owner",
-  "member",
+  "triager",
 ]);
 
 export const programStatus = pgEnum("program_status", [
@@ -53,6 +53,7 @@ export const profiles = pgTable("profiles", {
   id: uuid("id")
     .primaryKey()
     .references(() => authUsers.id, { onDelete: "cascade" }),
+  email: text("email").unique(),
   fullName: text("full_name").notNull(),
   username: text("username").unique(),
   avatarUrl: text("avatar_url"),
@@ -84,7 +85,7 @@ export const organizationMembers = pgTable("organization_members", {
   profileId: uuid("profile_id")
     .notNull()
     .references(() => profiles.id, { onDelete: "cascade" }),
-  role: organizationMemberRole("role").notNull().default("member"),
+  role: organizationMemberRole("role").notNull().default("triager"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 }).enableRLS();

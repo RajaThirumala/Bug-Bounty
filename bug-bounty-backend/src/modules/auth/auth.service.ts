@@ -28,6 +28,7 @@ export const registerUser = async (input: RegisterInput) => {
     .insert(profiles)
     .values({
       id: data.user.id,
+      email: data.user.email,
       fullName: input.name,
       username: input.username,
       primaryRole: input.role ?? "researcher",
@@ -37,6 +38,7 @@ export const registerUser = async (input: RegisterInput) => {
       target: profiles.id,
       set: {
         fullName: input.name,
+        email: data.user.email,
         username: input.username,
         primaryRole: input.role ?? "researcher",
         onboardingCompleted: false,
@@ -88,6 +90,7 @@ export const completeOAuthUser = async (token: string, input: OAuthCompleteInput
     .insert(profiles)
     .values({
       id: authUser.id,
+      email: authUser.email,
       fullName,
       avatarUrl,
       primaryRole: input.role ?? "researcher",

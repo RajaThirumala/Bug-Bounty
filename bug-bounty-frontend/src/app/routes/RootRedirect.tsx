@@ -20,7 +20,13 @@ export function RootRedirect() {
 
   return (
     <Navigate
-      to={user.role === "organization" ? "/organization/dashboard" : "/researcher/dashboard"}
+      to={
+        user.role === "organization"
+          ? "/organization/dashboard"
+          : user.role === "triager"
+            ? "/triager/dashboard"
+            : "/researcher/dashboard"
+      }
       replace
     />
   );

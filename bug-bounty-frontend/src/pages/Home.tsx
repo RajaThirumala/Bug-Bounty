@@ -7,7 +7,12 @@ import { useAuthStore } from "@/features/auth";
 export default function Home() {
   const isAuthenticated = useAuthStore((state) => state.isAuthenticated);
   const role = useAuthStore((state) => state.user?.role);
-  const dashboardPath = role === "organization" ? "/organization/dashboard" : "/researcher/dashboard";
+  const dashboardPath =
+    role === "organization"
+      ? "/organization/dashboard"
+      : role === "triager"
+        ? "/triager/dashboard"
+        : "/researcher/dashboard";
 
   return (
     <div className="min-h-screen bg-background text-foreground">

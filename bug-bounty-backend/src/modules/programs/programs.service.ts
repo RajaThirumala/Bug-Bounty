@@ -5,11 +5,21 @@ import { organizationMembers, organizations, programs } from "../../db/schema/in
 import { ApiError } from "../../utils/apiError.js";
 import type { CreateProgramInput } from "./programs.validation.js";
 
+type OrganizationAccessRole = "owner" | "triager";
+
 export const getCurrentOrganization = async (profileId: string) => {
+  return getOrganizationForRole(profileId, ["owner"]);
+};
+
+export const getReviewOrganization = async (profileId: string) => {
+  return getOrganizationForRole(profileId, ["owner", "triager"]);
+};
+
+const getOrganizationForRole = async (profileId: string, roles: OrganizationAccessRole[]) => {
   const membership = await db.query.organizationMembers.findFirst({
     where: and(
       eq(organizationMembers.profileId, profileId),
-      eq(organizationMembers.role, "owner"),
+      inArray(organizationMembers.role, roles),
     ),
   });
 
@@ -27,6 +37,16 @@ export const requireCurrentOrganization = async (profileId: string) => {
 
   if (!organization) {
     throw new ApiError(403, "Organization owner access required");
+  }
+
+  return organization;
+};
+
+export const requireReviewOrganization = async (profileId: string) => {
+  const organization = await getReviewOrganization(profileId);
+
+  if (!organization) {
+    throw new ApiError(403, "Organization report access required");
   }
 
   return organization;

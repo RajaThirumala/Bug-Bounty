@@ -43,6 +43,20 @@
       "when": 1778761200000,
       "tag": "0005_feature_requests",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1778761500000,
+      "tag": "0006_triager_role",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1778761800000,
+      "tag": "0007_profile_email",
+      "breakpoints": true
     }
   ]
 }

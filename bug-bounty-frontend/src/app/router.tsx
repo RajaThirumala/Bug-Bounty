@@ -16,13 +16,14 @@ import Reports from "@/pages/developer/Reports";
 import Profile from "@/pages/Profile";
 import Unauthorized from "@/pages/Unauthorized";
 import NotFound from "@/pages/NotFound";
-import { DeveloperDashboard, OrganizationDashboard } from "@/features/dashboard";
+import { DeveloperDashboard, OrganizationDashboard, TriagerDashboard } from "@/features/dashboard";
 import DeveloperFeatureRequests from "@/pages/developer/FeatureRequests";
 import OrganizationPrograms from "@/pages/organization/OrganizationPrograms";
 import CreateProgram from "@/pages/organization/CreateProgram";
 import OrganizationReports from "@/pages/organization/OrganizationReports";
 import OrganizationFeatureRequests from "@/pages/organization/OrganizationFeatureRequests";
 import CreateFeatureRequest from "@/pages/organization/CreateFeatureRequest";
+import OrganizationTriagers from "@/pages/organization/OrganizationTriagers";
 
 export const router = createBrowserRouter([
   { path: "/", element: <Home /> },
@@ -57,6 +58,30 @@ export const router = createBrowserRouter([
       </ProtectedRoute>
     ),
     children: [
+      {
+        path: "/triager",
+        element: (
+          <RoleGuard allow={["triager"]}>
+            <RootRedirect />
+          </RoleGuard>
+        ),
+      },
+      {
+        path: "/triager/dashboard",
+        element: (
+          <RoleGuard allow={["triager"]}>
+            <TriagerDashboard />
+          </RoleGuard>
+        ),
+      },
+      {
+        path: "/triager/reports",
+        element: (
+          <RoleGuard allow={["triager"]}>
+            <OrganizationReports />
+          </RoleGuard>
+        ),
+      },
       {
         path: "/researcher",
         element: (
@@ -206,6 +231,14 @@ export const router = createBrowserRouter([
         element: (
           <RoleGuard allow={["organization"]}>
             <OrganizationReports />
+          </RoleGuard>
+        ),
+      },
+      {
+        path: "/organization/triagers",
+        element: (
+          <RoleGuard allow={["organization"]}>
+            <OrganizationTriagers />
           </RoleGuard>
         ),
       },

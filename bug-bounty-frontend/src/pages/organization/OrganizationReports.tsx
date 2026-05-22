@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { PageHeader } from "@/components/common/PageHeader";
@@ -20,7 +19,12 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { getOrganizationReports, updateReportStatus, type ReportStatus } from "@/features/reports";
+import {
+  getOrganizationReports,
+  updateReportStatus,
+  type ReportSeverity,
+  type ReportStatus,
+} from "@/features/reports";
 import { useAuthStore } from "@/features/auth";
 
 const statusLabels: Record<ReportStatus, string> = {
@@ -30,18 +34,33 @@ const statusLabels: Record<ReportStatus, string> = {
   rejected: "Rejected",
 };
 
+const severityLabels: Record<ReportSeverity, string> = {
+  low: "Low",
+  medium: "Medium",
+  high: "High",
+  critical: "Critical",
+};
+
 export default function OrganizationReports() {
   const accessToken = useAuthStore((state) => state.accessToken);
   const queryClient = useQueryClient();
   const [draftStatuses, setDraftStatuses] = useState<Record<string, ReportStatus>>({});
+  const [draftSeverities, setDraftSeverities] = useState<Record<string, ReportSeverity>>({});
   const { data, isLoading, error } = useQuery({
     queryKey: ["organization-reports"],
     queryFn: () => getOrganizationReports(accessToken ?? ""),
     enabled: Boolean(accessToken),
   });
   const mutation = useMutation({
-    mutationFn: ({ reportId, status }: { reportId: string; status: ReportStatus }) =>
-      updateReportStatus(accessToken ?? "", reportId, status),
+    mutationFn: ({
+      reportId,
+      status,
+      severity,
+    }: {
+      reportId: string;
+      status: ReportStatus;
+      severity: ReportSeverity;
+    }) => updateReportStatus(accessToken ?? "", reportId, status, severity),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: ["organization-reports"] });
     },
@@ -51,6 +70,9 @@ export default function OrganizationReports() {
   useEffect(() => {
     setDraftStatuses(
       Object.fromEntries(reports.map((report) => [report.id, report.status])),
+    );
+    setDraftSeverities(
+      Object.fromEntries(reports.map((report) => [report.id, report.severity])),
     );
   }, [reports]);
 
@@ -89,8 +111,25 @@ export default function OrganizationReports() {
                   <TableRow key={report.id}>
                     <TableCell className="font-medium">{report.title}</TableCell>
                     <TableCell>{report.programName ?? report.programId}</TableCell>
-                    <TableCell>
-                      <Badge variant="outline" className="capitalize">{report.severity}</Badge>
+                    <TableCell className="w-40">
+                      <Select
+                        value={draftSeverities[report.id] ?? report.severity}
+                        onValueChange={(severity) =>
+                          setDraftSeverities((current) => ({
+                            ...current,
+                            [report.id]: severity as ReportSeverity,
+                          }))
+                        }
+                      >
+                        <SelectTrigger aria-label="Report severity">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {Object.entries(severityLabels).map(([value, label]) => (
+                            <SelectItem key={value} value={value}>{label}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </TableCell>
                     <TableCell className="w-44">
                       <Select
@@ -117,12 +156,14 @@ export default function OrganizationReports() {
                         size="sm"
                         disabled={
                           mutation.isPending ||
-                          (draftStatuses[report.id] ?? report.status) === report.status
+                          ((draftStatuses[report.id] ?? report.status) === report.status &&
+                            (draftSeverities[report.id] ?? report.severity) === report.severity)
                         }
                         onClick={() =>
                           mutation.mutate({
                             reportId: report.id,
                             status: draftStatuses[report.id] ?? report.status,
+                            severity: draftSeverities[report.id] ?? report.severity,
                           })
                         }
                       >
