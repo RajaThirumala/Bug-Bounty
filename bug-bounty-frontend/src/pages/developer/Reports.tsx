@@ -33,7 +33,12 @@ export default function Reports() {
                 <CardContent className="p-5">
                   <div className="flex items-start justify-between gap-3">
                     <div>
-                      <h3 className="font-semibold tracking-tight">{report.title}</h3>
+                      <Link
+                        to={`/researcher/reports/${report.id}`}
+                        className="font-semibold tracking-tight hover:underline"
+                      >
+                        {report.title}
+                      </Link>
                       <p className="text-sm text-muted-foreground mt-1">{report.programName ?? report.programId}</p>
                     </div>
                     <Badge variant="outline" className="capitalize">{report.status}</Badge>

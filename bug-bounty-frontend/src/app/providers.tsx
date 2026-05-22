@@ -2,6 +2,7 @@ import { useEffect, type ReactNode } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useThemeStore } from "@/stores/themeStore";
 import { useAuthStore } from "@/features/auth";
+import { useSupabaseRealtimeInvalidation } from "@/features/realtime/useSupabaseRealtimeInvalidation";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -18,5 +19,15 @@ export function Providers({ children }: { children: ReactNode }) {
     void initAuth();
   }, [initAuth, initTheme]);
 
-  return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
+  return (
+    <QueryClientProvider client={queryClient}>
+      <RealtimeInvalidator />
+      {children}
+    </QueryClientProvider>
+  );
+}
+
+function RealtimeInvalidator() {
+  useSupabaseRealtimeInvalidation();
+  return null;
 }

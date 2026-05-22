@@ -24,6 +24,7 @@ import OrganizationReports from "@/pages/organization/OrganizationReports";
 import OrganizationFeatureRequests from "@/pages/organization/OrganizationFeatureRequests";
 import CreateFeatureRequest from "@/pages/organization/CreateFeatureRequest";
 import OrganizationTriagers from "@/pages/organization/OrganizationTriagers";
+import ReportDetail from "@/pages/reports/ReportDetail";
 
 export const router = createBrowserRouter([
   { path: "/", element: <Home /> },
@@ -83,6 +84,14 @@ export const router = createBrowserRouter([
         ),
       },
       {
+        path: "/triager/reports/:reportId",
+        element: (
+          <RoleGuard allow={["triager"]}>
+            <ReportDetail />
+          </RoleGuard>
+        ),
+      },
+      {
         path: "/researcher",
         element: (
           <RoleGuard allow={["developer"]}>
@@ -127,6 +136,14 @@ export const router = createBrowserRouter([
         element: (
           <RoleGuard allow={["developer"]}>
             <Reports />
+          </RoleGuard>
+        ),
+      },
+      {
+        path: "/researcher/reports/:reportId",
+        element: (
+          <RoleGuard allow={["developer"]}>
+            <ReportDetail />
           </RoleGuard>
         ),
       },
@@ -187,6 +204,14 @@ export const router = createBrowserRouter([
         ),
       },
       {
+        path: "/developer/reports/:reportId",
+        element: (
+          <RoleGuard allow={["developer"]}>
+            <ReportDetail />
+          </RoleGuard>
+        ),
+      },
+      {
         path: "/developer/feature-requests",
         element: (
           <RoleGuard allow={["developer"]}>
@@ -231,6 +256,14 @@ export const router = createBrowserRouter([
         element: (
           <RoleGuard allow={["organization"]}>
             <OrganizationReports />
+          </RoleGuard>
+        ),
+      },
+      {
+        path: "/organization/reports/:reportId",
+        element: (
+          <RoleGuard allow={["organization", "triager"]}>
+            <ReportDetail />
           </RoleGuard>
         ),
       },

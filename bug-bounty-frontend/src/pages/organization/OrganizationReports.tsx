@@ -1,9 +1,11 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { PageHeader } from "@/components/common/PageHeader";
 import { EmptyState } from "@/components/common/EmptyState";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { Link } from "react-router-dom";
+import { MessageSquare } from "lucide-react";
 import {
   Select,
   SelectContent,
@@ -43,6 +45,7 @@ const severityLabels: Record<ReportSeverity, string> = {
 
 export default function OrganizationReports() {
   const accessToken = useAuthStore((state) => state.accessToken);
+  const role = useAuthStore((state) => state.user?.role);
   const queryClient = useQueryClient();
   const [draftStatuses, setDraftStatuses] = useState<Record<string, ReportStatus>>({});
   const [draftSeverities, setDraftSeverities] = useState<Record<string, ReportSeverity>>({});
@@ -65,7 +68,8 @@ export default function OrganizationReports() {
       await queryClient.invalidateQueries({ queryKey: ["organization-reports"] });
     },
   });
-  const reports = data?.reports ?? [];
+  const reports = useMemo(() => data?.reports ?? [], [data?.reports]);
+  const detailBasePath = role === "triager" ? "/triager/reports" : "/organization/reports";
 
   useEffect(() => {
     setDraftStatuses(
@@ -102,14 +106,18 @@ export default function OrganizationReports() {
                 <TableHead>Program</TableHead>
                 <TableHead>Severity</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead className="text-right">Action</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {reports.map((report) => {
                 return (
                   <TableRow key={report.id}>
-                    <TableCell className="font-medium">{report.title}</TableCell>
+                    <TableCell className="font-medium">
+                      <Link to={`${detailBasePath}/${report.id}`} className="hover:underline">
+                        {report.title}
+                      </Link>
+                    </TableCell>
                     <TableCell>{report.programName ?? report.programId}</TableCell>
                     <TableCell className="w-40">
                       <Select
@@ -152,23 +160,31 @@ export default function OrganizationReports() {
                       </Select>
                     </TableCell>
                     <TableCell className="text-right">
-                      <Button
-                        size="sm"
-                        disabled={
-                          mutation.isPending ||
-                          ((draftStatuses[report.id] ?? report.status) === report.status &&
-                            (draftSeverities[report.id] ?? report.severity) === report.severity)
-                        }
-                        onClick={() =>
-                          mutation.mutate({
-                            reportId: report.id,
-                            status: draftStatuses[report.id] ?? report.status,
-                            severity: draftSeverities[report.id] ?? report.severity,
-                          })
-                        }
-                      >
-                        Update
-                      </Button>
+                      <div className="flex justify-end gap-2">
+                        <Button size="sm" variant="outline" asChild>
+                          <Link to={`${detailBasePath}/${report.id}`}>
+                            <MessageSquare className="h-4 w-4" />
+                            Chat
+                          </Link>
+                        </Button>
+                        <Button
+                          size="sm"
+                          disabled={
+                            mutation.isPending ||
+                            ((draftStatuses[report.id] ?? report.status) === report.status &&
+                              (draftSeverities[report.id] ?? report.severity) === report.severity)
+                          }
+                          onClick={() =>
+                            mutation.mutate({
+                              reportId: report.id,
+                              status: draftStatuses[report.id] ?? report.status,
+                              severity: draftSeverities[report.id] ?? report.severity,
+                            })
+                          }
+                        >
+                          Update
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 );

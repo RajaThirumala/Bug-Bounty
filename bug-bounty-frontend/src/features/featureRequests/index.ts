@@ -1,6 +1,8 @@
-export { mockFeatureRequests } from "@/features/featureRequests/data/mockFeatureRequests";
 export * from "@/features/featureRequests/api";
 export type {
   FeatureRequest,
+  FeatureRequestSubmission,
+  FeatureRequestSubmissionStatus,
   FeatureRequestStatus,
+  OrganizationFeatureRequestSubmission,
 } from "@/features/featureRequests/types";

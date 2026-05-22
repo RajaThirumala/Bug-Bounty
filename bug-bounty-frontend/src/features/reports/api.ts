@@ -1,5 +1,10 @@
 import { apiRequest } from "@/lib/api";
-import type { Report, ReportSeverity, ReportStatus } from "@/features/reports/types";
+import type {
+  Report,
+  ReportMessage,
+  ReportSeverity,
+  ReportStatus,
+} from "@/features/reports/types";
 
 export interface CreateReportInput {
   programId: string;
@@ -20,6 +25,21 @@ export const getResearcherReports = (accessToken: string) =>
 
 export const getOrganizationReports = (accessToken: string) =>
   apiRequest<{ reports: Report[] }>("/api/organization/reports", { accessToken });
+
+export const getReport = (accessToken: string, reportId: string) =>
+  apiRequest<{ report: Report }>(`/api/reports/${reportId}`, { accessToken });
+
+export const getReportMessages = (accessToken: string, reportId: string) =>
+  apiRequest<{ messages: ReportMessage[] }>(`/api/reports/${reportId}/messages`, {
+    accessToken,
+  });
+
+export const createReportMessage = (accessToken: string, reportId: string, body: string) =>
+  apiRequest<{ message: ReportMessage }>(`/api/reports/${reportId}/messages`, {
+    method: "POST",
+    accessToken,
+    body: JSON.stringify({ body }),
+  });
 
 export const updateReportStatus = (
   accessToken: string,

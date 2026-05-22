@@ -12,5 +12,10 @@ export const updateReportStatusSchema = z.object({
   severity: z.enum(["low", "medium", "high", "critical"]).optional(),
 });
 
+export const createReportMessageSchema = z.object({
+  body: z.string().trim().min(1).max(5000),
+});
+
 export type CreateReportInput = z.infer<typeof createReportSchema>;
 export type UpdateReportStatusInput = z.infer<typeof updateReportStatusSchema>;
+export type CreateReportMessageInput = z.infer<typeof createReportMessageSchema>;

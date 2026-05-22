@@ -1,3 +1,8 @@
-export { mockReports } from "@/features/reports/data/mockReports";
 export * from "@/features/reports/api";
-export type { Report, ReportDraft, ReportSeverity, ReportStatus } from "@/features/reports/types";
+export type {
+  Report,
+  ReportDraft,
+  ReportMessage,
+  ReportSeverity,
+  ReportStatus,
+} from "@/features/reports/types";

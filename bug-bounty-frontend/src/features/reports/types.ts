@@ -15,6 +15,16 @@ export interface Report {
   organizationName?: string;
 }
 
+export interface ReportMessage {
+  id: string;
+  reportId: string;
+  senderId: string;
+  senderName: string;
+  senderRole: string;
+  body: string;
+  createdAt: string;
+}
+
 export interface ReportDraft {
   programId: string;
   title: string;

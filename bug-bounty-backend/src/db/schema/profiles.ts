@@ -49,6 +49,12 @@ export const featureRequestStatus = pgEnum("feature_request_status", [
   "completed",
 ]);
 
+export const featureRequestSubmissionStatus = pgEnum("feature_request_submission_status", [
+  "submitted",
+  "approved",
+  "rejected",
+]);
+
 export const profiles = pgTable("profiles", {
   id: uuid("id")
     .primaryKey()
@@ -121,6 +127,18 @@ export const reports = pgTable("reports", {
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 }).enableRLS();
 
+export const reportMessages = pgTable("report_messages", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  reportId: uuid("report_id")
+    .notNull()
+    .references(() => reports.id, { onDelete: "cascade" }),
+  senderId: uuid("sender_id")
+    .notNull()
+    .references(() => profiles.id, { onDelete: "cascade" }),
+  body: text("body").notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+}).enableRLS();
+
 export const featureRequests = pgTable("feature_requests", {
   id: uuid("id").primaryKey().defaultRandom(),
   organizationId: uuid("organization_id")
@@ -128,8 +146,23 @@ export const featureRequests = pgTable("feature_requests", {
     .references(() => organizations.id, { onDelete: "cascade" }),
   title: text("title").notNull(),
   description: text("description").notNull(),
+  repositoryUrl: text("repository_url").notNull(),
   bounty: integer("bounty").notNull().default(0),
   status: featureRequestStatus("status").notNull().default("open"),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+}).enableRLS();
+
+export const featureRequestSubmissions = pgTable("feature_request_submissions", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  featureRequestId: uuid("feature_request_id")
+    .notNull()
+    .references(() => featureRequests.id, { onDelete: "cascade" }),
+  researcherId: uuid("researcher_id")
+    .notNull()
+    .references(() => profiles.id, { onDelete: "cascade" }),
+  submissionUrl: text("submission_url").notNull(),
+  status: featureRequestSubmissionStatus("status").notNull().default("submitted"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 }).enableRLS();
@@ -144,5 +177,9 @@ export type Program = typeof programs.$inferSelect;
 export type NewProgram = typeof programs.$inferInsert;
 export type Report = typeof reports.$inferSelect;
 export type NewReport = typeof reports.$inferInsert;
+export type ReportMessage = typeof reportMessages.$inferSelect;
+export type NewReportMessage = typeof reportMessages.$inferInsert;
 export type FeatureRequest = typeof featureRequests.$inferSelect;
 export type NewFeatureRequest = typeof featureRequests.$inferInsert;
+export type FeatureRequestSubmission = typeof featureRequestSubmissions.$inferSelect;
+export type NewFeatureRequestSubmission = typeof featureRequestSubmissions.$inferInsert;

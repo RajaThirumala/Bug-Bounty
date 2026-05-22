@@ -1,10 +1,21 @@
 import { and, eq, inArray, ne } from "drizzle-orm";
 
 import { db } from "../../db/index.js";
-import { organizations, programs, reports } from "../../db/schema/index.js";
+import {
+  organizationMembers,
+  organizations,
+  profiles,
+  programs,
+  reportMessages,
+  reports,
+} from "../../db/schema/index.js";
 import { ApiError } from "../../utils/apiError.js";
 import { requireReviewOrganization } from "../programs/programs.service.js";
-import type { CreateReportInput, UpdateReportStatusInput } from "./reports.validation.js";
+import type {
+  CreateReportInput,
+  CreateReportMessageInput,
+  UpdateReportStatusInput,
+} from "./reports.validation.js";
 
 export const createResearcherReport = async (
   researcherId: string,
@@ -61,6 +72,51 @@ export const listResearcherReports = async (researcherId: string) => {
   return rows.map((report) => toReportResponse(report, report.programName, report.organizationName));
 };
 
+export const getAccessibleReport = async (profileId: string, reportId: string) => {
+  const [report] = await db
+    .select({
+      id: reports.id,
+      programId: reports.programId,
+      researcherId: reports.researcherId,
+      title: reports.title,
+      summary: reports.summary,
+      severity: reports.severity,
+      status: reports.status,
+      createdAt: reports.createdAt,
+      updatedAt: reports.updatedAt,
+      programName: programs.name,
+      organizationName: organizations.name,
+      organizationId: organizations.id,
+    })
+    .from(reports)
+    .innerJoin(programs, eq(reports.programId, programs.id))
+    .innerJoin(organizations, eq(programs.organizationId, organizations.id))
+    .where(eq(reports.id, reportId))
+    .limit(1);
+
+  if (!report) {
+    throw new ApiError(404, "Report not found");
+  }
+
+  if (report.researcherId === profileId) {
+    return toReportResponse(report, report.programName, report.organizationName);
+  }
+
+  const membership = await db.query.organizationMembers.findFirst({
+    where: and(
+      eq(organizationMembers.organizationId, report.organizationId),
+      eq(organizationMembers.profileId, profileId),
+      inArray(organizationMembers.role, ["owner", "triager"]),
+    ),
+  });
+
+  if (!membership) {
+    throw new ApiError(404, "Report not found");
+  }
+
+  return toReportResponse(report, report.programName, report.organizationName);
+};
+
 export const listOrganizationReports = async (profileId: string) => {
   const organization = await requireReviewOrganization(profileId);
   const organizationPrograms = await db.query.programs.findMany({
@@ -94,6 +150,69 @@ export const listOrganizationReports = async (profileId: string) => {
     organization,
     reports: rows.map((report) => toReportResponse(report, report.programName, organization.name)),
   };
+};
+
+export const listReportMessages = async (profileId: string, reportId: string) => {
+  await getAccessibleReport(profileId, reportId);
+
+  const rows = await db
+    .select({
+      id: reportMessages.id,
+      reportId: reportMessages.reportId,
+      senderId: reportMessages.senderId,
+      body: reportMessages.body,
+      createdAt: reportMessages.createdAt,
+      senderName: profiles.fullName,
+      senderRole: profiles.primaryRole,
+    })
+    .from(reportMessages)
+    .innerJoin(profiles, eq(reportMessages.senderId, profiles.id))
+    .where(eq(reportMessages.reportId, reportId))
+    .orderBy(reportMessages.createdAt);
+
+  return rows.map(toReportMessageResponse);
+};
+
+export const createReportMessage = async (
+  profileId: string,
+  reportId: string,
+  input: CreateReportMessageInput,
+) => {
+  await getAccessibleReport(profileId, reportId);
+
+  const [message] = await db
+    .insert(reportMessages)
+    .values({
+      reportId,
+      senderId: profileId,
+      body: input.body,
+    })
+    .returning();
+
+  if (!message) {
+    throw new ApiError(400, "Unable to create message");
+  }
+
+  const [row] = await db
+    .select({
+      id: reportMessages.id,
+      reportId: reportMessages.reportId,
+      senderId: reportMessages.senderId,
+      body: reportMessages.body,
+      createdAt: reportMessages.createdAt,
+      senderName: profiles.fullName,
+      senderRole: profiles.primaryRole,
+    })
+    .from(reportMessages)
+    .innerJoin(profiles, eq(reportMessages.senderId, profiles.id))
+    .where(eq(reportMessages.id, message.id))
+    .limit(1);
+
+  if (!row) {
+    throw new ApiError(400, "Unable to load message");
+  }
+
+  return toReportMessageResponse(row);
 };
 
 export const updateOrganizationReportStatus = async (
@@ -138,6 +257,11 @@ type ReportRow = typeof reports.$inferSelect & {
   organizationName?: string;
 };
 
+type ReportMessageRow = typeof reportMessages.$inferSelect & {
+  senderName: string;
+  senderRole: typeof profiles.$inferSelect.primaryRole;
+};
+
 const toReportResponse = (
   report: ReportRow,
   programName?: string,
@@ -153,4 +277,14 @@ const toReportResponse = (
   submittedAt: report.createdAt.toISOString(),
   programName,
   organizationName,
+});
+
+const toReportMessageResponse = (message: ReportMessageRow) => ({
+  id: message.id,
+  reportId: message.reportId,
+  senderId: message.senderId,
+  senderName: message.senderName,
+  senderRole: message.senderRole,
+  body: message.body,
+  createdAt: message.createdAt.toISOString(),
 });

@@ -20,6 +20,7 @@ export default function CreateFeatureRequest() {
   const accessToken = useAuthStore((state) => state.accessToken);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [repositoryUrl, setRepositoryUrl] = useState("");
   const [bounty, setBounty] = useState("");
   const [status, setStatus] = useState<FeatureRequestStatus>("open");
   const [error, setError] = useState("");
@@ -28,6 +29,7 @@ export default function CreateFeatureRequest() {
       createFeatureRequest(accessToken ?? "", {
         title,
         description,
+        repositoryUrl,
         bounty: Number(bounty),
         status,
       }),
@@ -72,6 +74,16 @@ export default function CreateFeatureRequest() {
               />
             </div>
             <div className="space-y-1.5">
+              <Label htmlFor="repositoryUrl">GitHub repository</Label>
+              <Input
+                id="repositoryUrl"
+                type="url"
+                value={repositoryUrl}
+                onChange={(e) => setRepositoryUrl(e.target.value)}
+                placeholder="https://github.com/acme/web-app"
+              />
+            </div>
+            <div className="space-y-1.5">
               <Label htmlFor="bounty">Bounty</Label>
               <Input id="bounty" type="number" value={bounty} onChange={(e) => setBounty(e.target.value)} placeholder="1200" />
             </div>
@@ -91,7 +103,10 @@ export default function CreateFeatureRequest() {
             </div>
             {error && <p className="text-sm text-destructive">{error}</p>}
             <div className="flex justify-end">
-              <Button type="submit" disabled={mutation.isPending || !title || !description || !bounty}>
+              <Button
+                type="submit"
+                disabled={mutation.isPending || !title || !description || !repositoryUrl || !bounty}
+              >
                 {mutation.isPending ? "Creating..." : "Create request"}
               </Button>
             </div>
