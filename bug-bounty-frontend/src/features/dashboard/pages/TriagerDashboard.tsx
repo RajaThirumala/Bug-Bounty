@@ -8,6 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { getOrganizationReports } from "@/features/reports";
 import { useAuthStore } from "@/features/auth";
+import { reportStatusBadgeClass } from "@/lib/badges";
 
 export default function TriagerDashboard() {
   const accessToken = useAuthStore((state) => state.accessToken);
@@ -56,7 +57,7 @@ export default function TriagerDashboard() {
                 <div>
                   <div className="flex items-center gap-2">
                     <p className="text-sm font-medium">{report.title}</p>
-                    <Badge variant="outline" className="capitalize">{report.status}</Badge>
+                    <Badge variant="outline" className={reportStatusBadgeClass(report.status, "capitalize")}>{report.status}</Badge>
                   </div>
                   <p className="text-xs text-muted-foreground mt-1">
                     {report.programName ?? report.programId}

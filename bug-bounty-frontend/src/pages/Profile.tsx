@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { z } from "zod";
+import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Input } from "@/components/ui/input";
@@ -56,8 +57,11 @@ export default function Profile() {
         username: result.data.username ? result.data.username : null,
       });
       setMessage("Profile updated.");
+      toast.success("Profile updated");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to update profile");
+      const message = err instanceof Error ? err.message : "Unable to update profile";
+      setError(message);
+      toast.error(message);
     } finally {
       setIsSaving(false);
     }

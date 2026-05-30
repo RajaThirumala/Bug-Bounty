@@ -10,6 +10,7 @@ import { getOrganizationPrograms } from "@/features/programs";
 import { getOrganizationReports } from "@/features/reports";
 import { getOrganizationFeatureRequests } from "@/features/featureRequests";
 import { useAuthStore } from "@/features/auth";
+import { reportStatusBadgeClass } from "@/lib/badges";
 
 export default function OrganizationDashboard() {
   const user = useAuthStore((state) => state.user);
@@ -71,7 +72,7 @@ export default function OrganizationDashboard() {
                 <div>
                   <div className="flex items-center gap-2">
                     <p className="text-sm font-medium">{report.title}</p>
-                    <Badge variant="outline" className="capitalize">{report.status}</Badge>
+                    <Badge variant="outline" className={reportStatusBadgeClass(report.status, "capitalize")}>{report.status}</Badge>
                   </div>
                   <p className="text-xs text-muted-foreground mt-1">
                     {report.programName ?? report.programId}

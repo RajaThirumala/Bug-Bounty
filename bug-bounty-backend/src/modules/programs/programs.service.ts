@@ -1,4 +1,4 @@
-import { and, eq, inArray, ne } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 
 import { db } from "../../db/index.js";
 import { escrowFunds, organizationMembers, organizations, programs } from "../../db/schema/index.js";
@@ -144,7 +144,7 @@ export const listResearcherPrograms = async () => {
     })
     .from(programs)
     .innerJoin(organizations, eq(programs.organizationId, organizations.id))
-    .where(inArray(programs.status, ["active", "private"]))
+    .where(inArray(programs.status, ["active", "paused"]))
     .orderBy(programs.createdAt);
 
   return rows.map((program) => toProgramResponse(program, program.organizationName));
@@ -167,7 +167,7 @@ export const getResearcherProgramById = async (programId: string) => {
     })
     .from(programs)
     .innerJoin(organizations, eq(programs.organizationId, organizations.id))
-    .where(and(eq(programs.id, programId), ne(programs.status, "paused")))
+    .where(and(eq(programs.id, programId), inArray(programs.status, ["active", "paused"])))
     .limit(1);
 
   if (!program) {

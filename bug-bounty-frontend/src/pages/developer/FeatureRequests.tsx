@@ -2,6 +2,7 @@ import { ExternalLink, GitBranch, Lightbulb, Send } from "lucide-react";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
+import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -16,6 +17,10 @@ import {
   type FeatureRequestSubmissionStatus,
 } from "@/features/featureRequests";
 import { useAuthStore } from "@/features/auth";
+import {
+  featureStatusBadgeClass,
+  submissionStatusBadgeClass as submissionBadgeClass,
+} from "@/lib/badges";
 
 const submissionSchema = z.object({
   submissionUrl: z.string().trim().url("Enter a valid GitHub repository URL").includes("github.com", {
@@ -57,11 +62,14 @@ export default function DeveloperFeatureRequests() {
     onSuccess: async (_data, variables) => {
       setSubmissionError("");
       setSubmissionUrls((current) => ({ ...current, [variables.requestId]: "" }));
+      toast.success("Implementation submitted");
       await queryClient.invalidateQueries({ queryKey: ["researcher-feature-request-submissions"] });
       await queryClient.invalidateQueries({ queryKey: ["organization-feature-request-submissions"] });
     },
     onError: (err) => {
-      setSubmissionError(err instanceof Error ? err.message : "Unable to submit repository");
+      const message = err instanceof Error ? err.message : "Unable to submit repository";
+      setSubmissionError(message);
+      toast.error(message);
     },
   });
   const requests = data?.featureRequests ?? [];
@@ -78,7 +86,9 @@ export default function DeveloperFeatureRequests() {
     setSubmissionError("");
     const result = submissionSchema.safeParse({ submissionUrl });
     if (!result.success) {
-      setSubmissionError(result.error.issues[0]?.message ?? "Enter a valid GitHub repository URL");
+      const message = result.error.issues[0]?.message ?? "Enter a valid GitHub repository URL";
+      setSubmissionError(message);
+      toast.error(message);
       return;
     }
     mutation.mutate({ requestId, submissionUrl: result.data.submissionUrl });
@@ -115,7 +125,9 @@ export default function DeveloperFeatureRequests() {
                     <p className="text-xs text-muted-foreground mt-2">{request.organizationName}</p>
                   )}
                 </div>
-                <Badge variant="outline">{statusLabel[request.status]}</Badge>
+                <Badge variant="outline" className={featureStatusBadgeClass(request.status)}>
+                  {statusLabel[request.status]}
+                </Badge>
               </div>
               <div className="mt-4 flex flex-wrap gap-2">
                 <Button variant="outline" size="sm" asChild>
@@ -139,7 +151,10 @@ export default function DeveloperFeatureRequests() {
               </div>
               <p className="text-sm font-medium mt-4">${request.bounty.toLocaleString()} bounty</p>
               {submissionByRequest[request.id] && (
-                <Badge variant="secondary" className="mt-3">
+                <Badge
+                  variant="outline"
+                  className={submissionBadgeClass(submissionByRequest[request.id].status, "mt-3")}
+                >
                   {submissionStatusLabel[submissionByRequest[request.id].status]}
                 </Badge>
               )}

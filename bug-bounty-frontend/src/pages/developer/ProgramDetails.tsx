@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { PageHeader } from "@/components/common/PageHeader";
 import { getResearcherProgram } from "@/features/programs";
 import { useAuthStore } from "@/features/auth";
+import { programStatusBadgeClass } from "@/lib/badges";
 
 export default function ProgramDetails() {
   const { programId } = useParams<{ programId: string }>();
@@ -33,6 +34,8 @@ export default function ProgramDetails() {
     );
   }
 
+  const isActive = program.status === "active";
+
   return (
     <div>
       <Button asChild variant="ghost" size="sm" className="mb-4 -ml-2">
@@ -43,9 +46,13 @@ export default function ProgramDetails() {
         title={program.name}
         description={program.organization}
         actions={
-          <Button asChild>
-            <Link to={`/researcher/submit-report?programId=${program.id}`}>Submit a report</Link>
-          </Button>
+          isActive ? (
+            <Button asChild>
+              <Link to={`/researcher/submit-report?programId=${program.id}`}>Submit a report</Link>
+            </Button>
+          ) : (
+            <Button disabled>Submit a report</Button>
+          )
         }
       />
 
@@ -55,7 +62,10 @@ export default function ProgramDetails() {
             <h3 className="text-sm font-medium mb-2">About this program</h3>
             <p className="text-sm text-muted-foreground leading-relaxed">{program.description}</p>
 
-            <h3 className="text-sm font-medium mt-6 mb-2">In scope</h3>
+            <h3 className="text-sm font-medium mt-6 mb-1">In scope</h3>
+            <p className="mb-3 text-xs text-muted-foreground">
+              Only test and submit reports for these approved assets or product areas.
+            </p>
             <div className="flex flex-wrap gap-2">
               {program.scope.map((s) => (
                 <Badge key={s} variant="secondary" className="font-normal">{s}</Badge>
@@ -74,7 +84,14 @@ export default function ProgramDetails() {
             </div>
             <div>
               <p className="text-xs uppercase tracking-wide text-muted-foreground">Status</p>
-              <p className="text-sm font-medium mt-1 capitalize">{program.status}</p>
+              <Badge variant="outline" className={programStatusBadgeClass(program.status, "mt-1 capitalize")}>
+                {program.status}
+              </Badge>
+              {!isActive && (
+                <p className="mt-2 text-xs text-muted-foreground">
+                  This program is paused, so new reports are not accepted.
+                </p>
+              )}
             </div>
           </CardContent>
         </Card>

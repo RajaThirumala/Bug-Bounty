@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { z } from "zod";
+import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -47,14 +48,17 @@ export default function CreateFeatureRequest() {
         repositoryUrl,
         bounty: Number(bounty),
         status,
-      }),
+    }),
     onSuccess: async () => {
+      toast.success("Feature request created");
       await queryClient.invalidateQueries({ queryKey: ["organization-feature-requests"] });
       await queryClient.invalidateQueries({ queryKey: ["researcher-feature-requests"] });
       navigate("/organization/feature-requests");
     },
     onError: (err) => {
-      setError(err instanceof Error ? err.message : "Unable to create feature request");
+      const message = err instanceof Error ? err.message : "Unable to create feature request";
+      setError(message);
+      toast.error(message);
     },
   });
 

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Link, useParams } from "react-router-dom";
 import { ArrowLeft, Send } from "lucide-react";
+import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,6 +11,17 @@ import { PageHeader } from "@/components/common/PageHeader";
 import { useAuthStore } from "@/features/auth";
 import { getReport, getReportMessages, type ReportMessage } from "@/features/reports";
 import { createReportSocket, type ReportChatAck } from "@/features/reports/socket";
+import { reportStatusBadgeClass, severityBadgeClass } from "@/lib/badges";
+
+const roleLabels: Record<string, string> = {
+  researcher: "Researcher",
+  developer: "Researcher",
+  organization_owner: "Organization owner",
+  organization_member: "Organization member",
+  triager: "Triager",
+  platform_admin: "Admin",
+  admin: "Admin",
+};
 
 export default function ReportDetail() {
   const { reportId = "" } = useParams();
@@ -53,7 +65,9 @@ export default function ReportDetail() {
     socketRef.current = socket;
 
     socket.on("connect_error", (socketError) => {
-      setChatError(socketError.message || "Unable to connect to report chat");
+      const message = socketError.message || "Unable to connect to report chat";
+      setChatError(message);
+      toast.error(message);
     });
 
     socket.on("report:message", (message: ReportMessage) => {
@@ -68,6 +82,7 @@ export default function ReportDetail() {
     socket.emit("report:join", { reportId }, (ack: ReportChatAck) => {
       if (!ack.ok) {
         setChatError(ack.message);
+        toast.error(ack.message);
         return;
       }
       setChatError("");
@@ -103,10 +118,12 @@ export default function ReportDetail() {
       setIsSending(false);
       if (!ack.ok) {
         setChatError(ack.message);
+        toast.error(ack.message);
         return;
       }
       setBody("");
       setChatError("");
+      toast.success("Message sent");
     });
   };
 
@@ -133,8 +150,8 @@ export default function ReportDetail() {
         <Card className="border-border/70 shadow-[var(--shadow-soft)] rounded-xl">
           <CardHeader>
             <div className="flex flex-wrap gap-2">
-              <Badge variant="outline" className="capitalize">{report.status}</Badge>
-              <Badge variant="secondary" className="capitalize">{report.severity}</Badge>
+              <Badge variant="outline" className={reportStatusBadgeClass(report.status, "capitalize")}>{report.status}</Badge>
+              <Badge variant="outline" className={severityBadgeClass(report.severity, "capitalize")}>{report.severity}</Badge>
             </div>
             <CardTitle className="text-base">Report summary</CardTitle>
           </CardHeader>
@@ -156,6 +173,9 @@ export default function ReportDetail() {
               ) : (
                 sortedMessages.map((message) => {
                   const isMine = message.senderId === user?.id;
+                  const senderLabel = isMine
+                    ? `${message.senderName} (me)`
+                    : `${message.senderName} (${roleLabels[message.senderRole] ?? message.senderRole})`;
 
                   return (
                   <div
@@ -169,14 +189,14 @@ export default function ReportDetail() {
                           : "border-border bg-background text-foreground"
                       }`}
                     >
-                      <div className={`flex items-center justify-between gap-3 ${isMine ? "text-background/75" : "text-muted-foreground"}`}>
-                        <p className="text-sm font-medium">{isMine ? "You" : message.senderName}</p>
-                        <p className="text-xs">
-                          {new Date(message.createdAt).toLocaleString()}
-                        </p>
-                      </div>
+                      <p className={`text-sm font-medium ${isMine ? "text-background" : "text-foreground"}`}>
+                        {senderLabel}
+                      </p>
                       <p className={`mt-2 whitespace-pre-wrap text-sm ${isMine ? "text-background" : "text-muted-foreground"}`}>
                         {message.body}
+                      </p>
+                      <p className={`mt-2 text-right text-xs ${isMine ? "text-background/75" : "text-muted-foreground"}`}>
+                        {new Date(message.createdAt).toLocaleString()}
                       </p>
                     </div>
                   </div>

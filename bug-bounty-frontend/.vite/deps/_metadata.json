@@ -2,7 +2,7 @@
   "hash": "7ea6a93c",
   "configHash": "c3a8e248",
   "lockfileHash": "998281e8",
-  "browserHash": "4dcd8401",
+  "browserHash": "64e5cabd",
   "optimized": {
     "@radix-ui/react-avatar": {
       "src": "../../node_modules/@radix-ui/react-avatar/dist/index.mjs",
@@ -19,13 +19,13 @@
     "@radix-ui/react-popover": {
       "src": "../../node_modules/@radix-ui/react-popover/dist/index.mjs",
       "file": "@radix-ui_react-popover.js",
-      "fileHash": "42ab4215",
+      "fileHash": "851e5a94",
       "needsInterop": false
     },
     "@radix-ui/react-select": {
       "src": "../../node_modules/@radix-ui/react-select/dist/index.mjs",
       "file": "@radix-ui_react-select.js",
-      "fileHash": "592194fc",
+      "fileHash": "b7ccc8a8",
       "needsInterop": false
     },
     "@radix-ui/react-slot": {
@@ -106,6 +106,12 @@
       "fileHash": "e54bb70f",
       "needsInterop": false
     },
+    "sonner": {
+      "src": "../../node_modules/sonner/dist/index.mjs",
+      "file": "sonner.js",
+      "fileHash": "23fc12ae",
+      "needsInterop": false
+    },
     "tailwind-merge": {
       "src": "../../node_modules/tailwind-merge/dist/bundle-mjs.mjs",
       "file": "tailwind-merge.js",
@@ -126,8 +132,8 @@
     }
   },
   "chunks": {
-    "Combination-C-qmNHz2": {
-      "file": "Combination-C-qmNHz2.js",
+    "Combination-B-MvxxRA": {
+      "file": "Combination-B-MvxxRA.js",
       "isDynamicEntry": false
     },
     "chunk-CYJPkc-J": {

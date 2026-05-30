@@ -10,6 +10,7 @@ import { getResearcherPrograms } from "@/features/programs";
 import { getResearcherReports } from "@/features/reports";
 import { getResearcherFeatureRequests } from "@/features/featureRequests";
 import { useAuthStore } from "@/features/auth";
+import { reportStatusBadgeClass } from "@/lib/badges";
 
 export default function DeveloperDashboard() {
   const user = useAuthStore((state) => state.user);
@@ -77,7 +78,7 @@ export default function DeveloperDashboard() {
                     {report.programName ?? report.programId}
                   </p>
                 </div>
-                <Badge variant="outline" className="capitalize w-fit">{report.status}</Badge>
+                <Badge variant="outline" className={reportStatusBadgeClass(report.status, "capitalize w-fit")}>{report.status}</Badge>
               </Link>
             ))}
           </CardContent>

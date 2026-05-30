@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { PageHeader } from "@/components/common/PageHeader";
@@ -30,6 +31,7 @@ import {
 } from "@/features/reports";
 import { useAuthStore } from "@/features/auth";
 import { getOrganizationTriagers } from "@/features/team/api";
+import { reportStatusBadgeClass, severityBadgeClass } from "@/lib/badges";
 
 const statusLabels: Record<ReportStatus, string> = {
   submitted: "Submitted",
@@ -74,14 +76,22 @@ export default function OrganizationReports() {
       severity: ReportSeverity;
     }) => updateReportStatus(accessToken ?? "", reportId, status, severity),
     onSuccess: async () => {
+      toast.success("Report updated");
       await queryClient.invalidateQueries({ queryKey: ["organization-reports"] });
+    },
+    onError: (err) => {
+      toast.error(err instanceof Error ? err.message : "Unable to update report");
     },
   });
   const assignmentMutation = useMutation({
     mutationFn: ({ reportId, triagerId }: { reportId: string; triagerId: string | null }) =>
       assignReportTriager(accessToken ?? "", reportId, triagerId),
     onSuccess: async () => {
+      toast.success("Triager assignment updated");
       await queryClient.invalidateQueries({ queryKey: ["organization-reports"] });
+    },
+    onError: (err) => {
+      toast.error(err instanceof Error ? err.message : "Unable to assign triager");
     },
   });
   const reports = useMemo(() => {
@@ -153,6 +163,9 @@ export default function OrganizationReports() {
             </TableHeader>
             <TableBody>
               {reports.map((report) => {
+                const selectedSeverity = draftSeverities[report.id] ?? report.severity;
+                const selectedStatus = draftStatuses[report.id] ?? report.status;
+
                 return (
                   <TableRow key={report.id}>
                     <TableCell className="font-medium">
@@ -196,7 +209,7 @@ export default function OrganizationReports() {
                     </TableCell>
                     <TableCell className="w-40">
                       <Select
-                        value={draftSeverities[report.id] ?? report.severity}
+                        value={selectedSeverity}
                         onValueChange={(severity) =>
                           setDraftSeverities((current) => ({
                             ...current,
@@ -204,7 +217,10 @@ export default function OrganizationReports() {
                           }))
                         }
                       >
-                        <SelectTrigger aria-label="Report severity">
+                        <SelectTrigger
+                          aria-label="Report severity"
+                          className={severityBadgeClass(selectedSeverity, "capitalize")}
+                        >
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -216,7 +232,7 @@ export default function OrganizationReports() {
                     </TableCell>
                     <TableCell className="w-44">
                       <Select
-                        value={draftStatuses[report.id] ?? report.status}
+                        value={selectedStatus}
                         onValueChange={(status) =>
                           setDraftStatuses((current) => ({
                             ...current,
@@ -224,7 +240,10 @@ export default function OrganizationReports() {
                           }))
                         }
                       >
-                        <SelectTrigger aria-label="Report status">
+                        <SelectTrigger
+                          aria-label="Report status"
+                          className={reportStatusBadgeClass(selectedStatus, "capitalize")}
+                        >
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>

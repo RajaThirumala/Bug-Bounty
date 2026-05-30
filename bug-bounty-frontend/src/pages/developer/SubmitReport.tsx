@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { z } from "zod";
+import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -44,6 +45,9 @@ export default function SubmitReport() {
     queryFn: () => getResearcherPrograms(accessToken ?? ""),
     enabled: Boolean(accessToken),
   });
+  const programs = data?.programs ?? [];
+  const activePrograms = programs.filter((program) => program.status === "active");
+  const selectedProgram = programs.find((program) => program.id === programId);
 
   const mutation = useMutation({
     mutationFn: () =>
@@ -57,12 +61,15 @@ export default function SubmitReport() {
       if (draftKey) {
         window.localStorage.removeItem(draftKey);
       }
+      toast.success("Report submitted");
       await queryClient.invalidateQueries({ queryKey: ["researcher-reports"] });
       await queryClient.invalidateQueries({ queryKey: ["organization-reports"] });
       navigate("/researcher/reports");
     },
     onError: (err) => {
-      setError(err instanceof Error ? err.message : "Unable to submit report");
+      const message = err instanceof Error ? err.message : "Unable to submit report";
+      setError(message);
+      toast.error(message);
     },
   });
 
@@ -74,6 +81,12 @@ export default function SubmitReport() {
     const result = reportSchema.safeParse({ title, programId, severity, summary });
     if (!result.success) {
       setFieldErrors(fieldErrorsFromZod<ReportField>(result.error));
+      return;
+    }
+    if (selectedProgram && selectedProgram.status !== "active") {
+      const message = "This program is paused, so new reports are not accepted.";
+      setFieldErrors({ programId: message });
+      toast.error(message);
       return;
     }
 
@@ -91,6 +104,7 @@ export default function SubmitReport() {
     );
     setError("");
     setDraftMessage("Draft saved in this browser.");
+    toast.success("Draft saved");
   };
 
   useEffect(() => {
@@ -146,11 +160,21 @@ export default function SubmitReport() {
                 <Select value={programId} onValueChange={setProgramId}>
                   <SelectTrigger id="program"><SelectValue placeholder="Select a program" /></SelectTrigger>
                   <SelectContent>
-                    {(data?.programs ?? []).map((program) => (
+                    {selectedProgram?.status === "paused" && (
+                      <SelectItem value={selectedProgram.id} disabled>
+                        {selectedProgram.name} (paused)
+                      </SelectItem>
+                    )}
+                    {activePrograms.map((program) => (
                       <SelectItem key={program.id} value={program.id}>{program.name}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
+                {selectedProgram?.status === "paused" && (
+                  <p className="text-sm text-muted-foreground">
+                    The selected program is paused and cannot accept new reports.
+                  </p>
+                )}
                 {fieldErrors.programId && <p className="text-sm text-destructive">{fieldErrors.programId}</p>}
               </div>
               <div className="space-y-1.5">
@@ -193,7 +217,15 @@ export default function SubmitReport() {
               </Button>
               <Button
                 type="submit"
-                disabled={mutation.isPending || isLoading || !title || !programId || !severity || !summary}
+                disabled={
+                  mutation.isPending ||
+                  isLoading ||
+                  !title ||
+                  !programId ||
+                  !severity ||
+                  !summary ||
+                  selectedProgram?.status === "paused"
+                }
               >
                 {mutation.isPending ? "Submitting..." : "Submit report"}
               </Button>

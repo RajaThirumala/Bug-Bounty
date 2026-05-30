@@ -2,6 +2,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { Github } from "lucide-react";
 import { useState } from "react";
 import { z } from "zod";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -43,9 +44,12 @@ export default function Register() {
 
     try {
       await register({ ...result.data, role: "developer" });
+      toast.success("Account created");
       navigate("/onboarding", { replace: true });
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to create account");
+      const message = err instanceof Error ? err.message : "Unable to create account";
+      setError(message);
+      toast.error(message);
     } finally {
       setIsSubmitting(false);
     }
@@ -56,7 +60,9 @@ export default function Register() {
     try {
       await signInWithOAuth("github");
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Unable to start GitHub signup");
+      const message = err instanceof Error ? err.message : "Unable to start GitHub signup";
+      setError(message);
+      toast.error(message);
     }
   };
 

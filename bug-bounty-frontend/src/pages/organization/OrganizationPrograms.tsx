@@ -3,6 +3,7 @@ import { Pencil, Plus } from "lucide-react";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { z } from "zod";
+import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -20,6 +21,7 @@ import {
 } from "@/components/ui/select";
 import { getOrganizationPrograms, updateProgram, type ProgramStatus } from "@/features/programs";
 import { useAuthStore } from "@/features/auth";
+import { programStatusBadgeClass } from "@/lib/badges";
 import { fieldErrorsFromZod, type FieldErrors } from "@/lib/validation";
 
 const updateProgramSchema = z.object({
@@ -61,11 +63,14 @@ export default function OrganizationPrograms() {
     onSuccess: async () => {
       setEditingProgramId(null);
       setUpdateError("");
+      toast.success("Program updated");
       await queryClient.invalidateQueries({ queryKey: ["organization-programs"] });
       await queryClient.invalidateQueries({ queryKey: ["researcher-programs"] });
     },
     onError: (err) => {
-      setUpdateError(err instanceof Error ? err.message : "Unable to update program");
+      const message = err instanceof Error ? err.message : "Unable to update program";
+      setUpdateError(message);
+      toast.error(message);
     },
   });
 
@@ -155,7 +160,7 @@ export default function OrganizationPrograms() {
                       <p className="text-sm text-muted-foreground mt-1">{program.description}</p>
                     )}
                   </div>
-                  <Badge variant="outline" className="capitalize">{program.status}</Badge>
+                  <Badge variant="outline" className={programStatusBadgeClass(program.status, "capitalize")}>{program.status}</Badge>
                 </div>
 
                 {isEditing && draft ? (
@@ -197,6 +202,9 @@ export default function OrganizationPrograms() {
                     </div>
                     <div className="space-y-1.5">
                       <Label htmlFor={`scope-${program.id}`}>Scope</Label>
+                      <p className="text-xs text-muted-foreground">
+                        Assets researchers can test, separated by commas or new lines.
+                      </p>
                       <Input
                         id={`scope-${program.id}`}
                         value={draft.scope}
@@ -222,6 +230,12 @@ export default function OrganizationPrograms() {
                   <>
                     <p className="text-sm font-medium mt-4">
                       ${program.minBounty.toLocaleString()} - ${program.maxBounty.toLocaleString()}
+                    </p>
+                    <p className="mt-4 text-xs font-medium uppercase tracking-wide text-muted-foreground">
+                      In scope
+                    </p>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Researchers should only test and report bugs for these listed assets.
                     </p>
                     <div className="mt-4 flex flex-wrap gap-2">
                       {program.scope.map((item) => (

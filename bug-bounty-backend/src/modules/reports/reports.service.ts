@@ -1,4 +1,4 @@
-import { and, eq, inArray, ne } from "drizzle-orm";
+import { and, eq, inArray } from "drizzle-orm";
 
 import { db } from "../../db/index.js";
 import {
@@ -26,11 +26,11 @@ export const createResearcherReport = async (
   input: CreateReportInput,
 ) => {
   const program = await db.query.programs.findFirst({
-    where: and(eq(programs.id, input.programId), ne(programs.status, "paused")),
+    where: and(eq(programs.id, input.programId), eq(programs.status, "active")),
   });
 
   if (!program) {
-    throw new ApiError(404, "Program not found");
+    throw new ApiError(400, "Reports can only be submitted to active programs");
   }
 
   const [report] = await db

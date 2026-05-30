@@ -7,14 +7,9 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { PageHeader } from "@/components/common/PageHeader";
 import { EmptyState } from "@/components/common/EmptyState";
-import { getResearcherPrograms, type ProgramStatus } from "@/features/programs";
+import { getResearcherPrograms } from "@/features/programs";
 import { useAuthStore } from "@/features/auth";
-
-const statusVariant: Record<ProgramStatus, { label: string; className: string }> = {
-  active: { label: "Active", className: "bg-success/10 text-success border-success/20" },
-  paused: { label: "Paused", className: "bg-warning/10 text-warning-foreground border-warning/20" },
-  private: { label: "Private", className: "bg-primary/10 text-primary border-primary/20" },
-};
+import { programStatusBadgeClass } from "@/lib/badges";
 
 export default function Programs() {
   const accessToken = useAuthStore((state) => state.accessToken);
@@ -48,9 +43,7 @@ export default function Programs() {
       )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
-        {programs.map((p) => {
-          const s = statusVariant[p.status];
-          return (
+        {programs.map((p) => (
             <Card
               key={p.id}
               className="border-border/70 shadow-[var(--shadow-soft)] hover:shadow-[var(--shadow-soft-md)] transition-shadow rounded-xl"
@@ -61,7 +54,7 @@ export default function Programs() {
                     <h3 className="font-semibold tracking-tight truncate">{p.name}</h3>
                     <p className="text-xs text-muted-foreground mt-0.5">{p.organization}</p>
                   </div>
-                  <Badge variant="outline" className={s.className}>{s.label}</Badge>
+                  <Badge variant="outline" className={programStatusBadgeClass(p.status, "capitalize")}>{p.status}</Badge>
                 </div>
                 <p className="text-sm text-muted-foreground line-clamp-2 mb-4">{p.description}</p>
                 <div className="flex items-center justify-between mt-auto pt-3 border-t border-border/60">
@@ -77,8 +70,7 @@ export default function Programs() {
                 </div>
               </CardContent>
             </Card>
-          );
-        })}
+        ))}
       </div>
     </div>
   );

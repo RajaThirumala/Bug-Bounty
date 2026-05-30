@@ -1,4 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -26,7 +27,11 @@ export default function AdminDashboard() {
       releaseReason: string;
     }) => releaseEscrow(accessToken ?? "", escrowId, recipientId, releaseReason),
     onSuccess: async () => {
+      toast.success("Reward released");
       await queryClient.invalidateQueries({ queryKey: ["admin-escrows"] });
+    },
+    onError: (err) => {
+      toast.error(err instanceof Error ? err.message : "Unable to release reward");
     },
   });
   const escrows = data?.escrows ?? [];

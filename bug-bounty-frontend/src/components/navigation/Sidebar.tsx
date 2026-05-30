@@ -98,7 +98,7 @@ export function Sidebar() {
         })}
       </nav>
       <div className="p-4 text-xs text-muted-foreground border-t border-sidebar-border">
-        v0.1.0 · Day 2
+        v0.1.0 · Day 14
       </div>
     </aside>
   );

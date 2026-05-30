@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
 import { z } from "zod";
+import { toast } from "sonner";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -52,11 +53,14 @@ export default function CreateProgram() {
           .filter(Boolean),
       }),
     onSuccess: async () => {
+      toast.success("Program created");
       await queryClient.invalidateQueries({ queryKey: ["organization-programs"] });
       navigate("/organization/programs");
     },
     onError: (err) => {
-      setError(err instanceof Error ? err.message : "Unable to create program");
+      const message = err instanceof Error ? err.message : "Unable to create program";
+      setError(message);
+      toast.error(message);
     },
   });
 
@@ -122,6 +126,9 @@ export default function CreateProgram() {
             </div>
             <div className="space-y-1.5">
               <Label htmlFor="scope">Scope</Label>
+              <p className="text-xs text-muted-foreground">
+                List the assets researchers are allowed to test, such as domains, APIs, apps, or specific product areas.
+              </p>
               <Textarea
                 id="scope"
                 rows={4}

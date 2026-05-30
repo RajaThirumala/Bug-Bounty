@@ -1,9 +1,9 @@
 "use client";
 import { r as __toESM, t as __commonJSMin } from "./chunk-CYJPkc-J.js";
 import { t as require_react } from "./react.js";
+import { t as require_react_dom } from "./react-dom.js";
 import { t as require_jsx_runtime } from "./react_jsx-runtime.js";
 import { n as useCallbackRef, t as useLayoutEffect2 } from "./dist-D6GP3NWr.js";
-import { t as require_react_dom } from "./react-dom.js";
 import { createSlot } from "./@radix-ui_react-slot.js";
 //#region node_modules/@radix-ui/react-avatar/node_modules/@radix-ui/react-context/dist/index.mjs
 var import_react = /* @__PURE__ */ __toESM(require_react(), 1);

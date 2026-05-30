@@ -115,7 +115,7 @@ export const programs = pgTable("programs", {
   description: text("description").notNull(),
   minBounty: integer("min_bounty").notNull().default(0),
   maxBounty: integer("max_bounty").notNull().default(0),
-  status: programStatus("status").notNull().default("private"),
+  status: programStatus("status").notNull().default("active"),
   scope: text("scope").array().notNull().default([]),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),

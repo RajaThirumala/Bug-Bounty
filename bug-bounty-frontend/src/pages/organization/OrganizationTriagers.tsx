@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ShieldCheck } from "lucide-react";
 import { z } from "zod";
+import { toast } from "sonner";
 import { PageHeader } from "@/components/common/PageHeader";
 import { EmptyState } from "@/components/common/EmptyState";
 import { Button } from "@/components/ui/button";
@@ -30,10 +31,13 @@ export default function OrganizationTriagers() {
     onSuccess: async () => {
       setEmail("");
       setError("");
+      toast.success("Triager added");
       await queryClient.invalidateQueries({ queryKey: ["organization-triagers"] });
     },
     onError: (err) => {
-      setError(err instanceof Error ? err.message : "Unable to add triager");
+      const message = err instanceof Error ? err.message : "Unable to add triager";
+      setError(message);
+      toast.error(message);
     },
   });
   const triagers = data?.triagers ?? [];

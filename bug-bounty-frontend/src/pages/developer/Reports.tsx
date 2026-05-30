@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { getResearcherReports } from "@/features/reports";
 import { useAuthStore } from "@/features/auth";
+import { reportStatusBadgeClass, severityBadgeClass } from "@/lib/badges";
 
 export default function Reports() {
   const accessToken = useAuthStore((state) => state.accessToken);
@@ -41,11 +42,11 @@ export default function Reports() {
                       </Link>
                       <p className="text-sm text-muted-foreground mt-1">{report.programName ?? report.programId}</p>
                     </div>
-                    <Badge variant="outline" className="capitalize">{report.status}</Badge>
+                    <Badge variant="outline" className={reportStatusBadgeClass(report.status, "capitalize")}>{report.status}</Badge>
                   </div>
-                  <p className="text-sm text-muted-foreground mt-4 capitalize">
+                  <Badge variant="outline" className={severityBadgeClass(report.severity, "mt-4 capitalize")}>
                     {report.severity} severity
-                  </p>
+                  </Badge>
                 </CardContent>
               </Card>
           ))}

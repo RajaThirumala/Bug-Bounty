@@ -3,6 +3,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useThemeStore } from "@/stores/themeStore";
 import { useAuthStore } from "@/features/auth";
 import { useSupabaseRealtimeInvalidation } from "@/features/realtime/useSupabaseRealtimeInvalidation";
+import { Toaster } from "@/components/ui/sonner";
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -23,6 +24,7 @@ export function Providers({ children }: { children: ReactNode }) {
     <QueryClientProvider client={queryClient}>
       <RealtimeInvalidator />
       {children}
+      <Toaster position="top-right" richColors />
     </QueryClientProvider>
   );
 }

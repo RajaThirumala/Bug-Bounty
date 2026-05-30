@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { ExternalLink, GitBranch, Plus } from "lucide-react";
 import { useState } from "react";
+import { toast } from "sonner";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -22,6 +23,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { featureStatusBadgeClass, submissionStatusBadgeClass } from "@/lib/badges";
 
 export default function OrganizationFeatureRequests() {
   const accessToken = useAuthStore((state) => state.accessToken);
@@ -48,8 +50,12 @@ export default function OrganizationFeatureRequests() {
     mutationFn: ({ submissionId, status }: { submissionId: string; status: "approved" | "rejected" }) =>
       reviewFeatureRequestSubmission(accessToken ?? "", submissionId, status),
     onSuccess: async () => {
+      toast.success("Submission review saved");
       await queryClient.invalidateQueries({ queryKey: ["organization-feature-request-submissions"] });
       await queryClient.invalidateQueries({ queryKey: ["researcher-feature-request-submissions"] });
+    },
+    onError: (err) => {
+      toast.error(err instanceof Error ? err.message : "Unable to review submission");
     },
   });
   const assignmentMutation = useMutation({
@@ -57,7 +63,11 @@ export default function OrganizationFeatureRequests() {
       assignFeatureRequestSubmissionTriager(accessToken ?? "", submissionId, triagerId),
     onSuccess: async () => {
       setDraftAssignments({});
+      toast.success("Triager assigned");
       await queryClient.invalidateQueries({ queryKey: ["organization-feature-request-submissions"] });
+    },
+    onError: (err) => {
+      toast.error(err instanceof Error ? err.message : "Unable to assign triager");
     },
   });
   const requests = data?.featureRequests ?? [];
@@ -105,7 +115,7 @@ export default function OrganizationFeatureRequests() {
                   <h3 className="font-semibold tracking-tight">{request.title}</h3>
                   <p className="text-sm text-muted-foreground mt-1">{request.description}</p>
                 </div>
-                <Badge variant="outline" className="capitalize">
+                <Badge variant="outline" className={featureStatusBadgeClass(request.status, "capitalize")}>
                   {request.status.replace("_", " ")}
                 </Badge>
               </div>
@@ -145,7 +155,7 @@ export default function OrganizationFeatureRequests() {
                       </p>
                     </div>
                     <div className="flex flex-col items-end gap-2">
-                      <Badge variant="outline" className="capitalize">{submission.status}</Badge>
+                      <Badge variant="outline" className={submissionStatusBadgeClass(submission.status, "capitalize")}>{submission.status}</Badge>
                       {role === "triager" && submission.assignedTriagerId === userId && (
                         <Badge variant="secondary">Assigned to me</Badge>
                       )}
