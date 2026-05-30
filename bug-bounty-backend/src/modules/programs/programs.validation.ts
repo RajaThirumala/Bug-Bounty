@@ -14,4 +14,12 @@ export const createProgramSchema = z
     path: ["maxBounty"],
   });
 
+export const updateProgramSchema = z
+  .object({
+    description: z.string().trim().min(10).max(5000),
+    status: z.enum(["active", "paused", "private"]),
+    scope: z.array(z.string().trim().min(1).max(200)).min(1).max(50),
+  });
+
 export type CreateProgramInput = z.infer<typeof createProgramSchema>;
+export type UpdateProgramInput = z.infer<typeof updateProgramSchema>;

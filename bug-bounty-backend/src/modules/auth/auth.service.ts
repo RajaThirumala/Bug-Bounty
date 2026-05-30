@@ -4,7 +4,13 @@ import { supabase } from "../../config/supabase.js";
 import { db } from "../../db/index.js";
 import { organizationMembers, organizations, profiles } from "../../db/schema/index.js";
 import { ApiError } from "../../utils/apiError.js";
-import type { CreateOrganizationInput, LoginInput, OAuthCompleteInput, RegisterInput } from "./auth.validation.js";
+import type {
+  CreateOrganizationInput,
+  LoginInput,
+  OAuthCompleteInput,
+  RegisterInput,
+  UpdateProfileInput,
+} from "./auth.validation.js";
 
 export const registerUser = async (input: RegisterInput) => {
   const { data, error } = await supabase.auth.signUp({
@@ -167,6 +173,25 @@ export const findProfileById = async (id: string) => {
   return db.query.profiles.findFirst({
     where: eq(profiles.id, id),
   });
+};
+
+export const updateProfile = async (profileId: string, input: UpdateProfileInput) => {
+  const username = input.username?.trim() ? input.username.trim() : null;
+  const [profile] = await db
+    .update(profiles)
+    .set({
+      fullName: input.fullName,
+      username,
+      updatedAt: new Date(),
+    })
+    .where(eq(profiles.id, profileId))
+    .returning();
+
+  if (!profile) {
+    throw new ApiError(404, "Profile not found");
+  }
+
+  return profile;
 };
 
 export const getAuthUserFromToken = async (token: string) => {

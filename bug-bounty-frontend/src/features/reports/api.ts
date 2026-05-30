@@ -52,3 +52,14 @@ export const updateReportStatus = (
     accessToken,
     body: JSON.stringify({ status, severity }),
   });
+
+export const assignReportTriager = (
+  accessToken: string,
+  reportId: string,
+  triagerId: string | null,
+) =>
+  apiRequest<{ report: Report }>(`/api/organization/reports/${reportId}/triager`, {
+    method: "PATCH",
+    accessToken,
+    body: JSON.stringify({ triagerId }),
+  });

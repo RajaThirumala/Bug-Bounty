@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ShieldCheck } from "lucide-react";
+import { z } from "zod";
 import { PageHeader } from "@/components/common/PageHeader";
 import { EmptyState } from "@/components/common/EmptyState";
 import { Button } from "@/components/ui/button";
@@ -9,6 +10,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { addOrganizationTriager, getOrganizationTriagers } from "@/features/team/api";
 import { useAuthStore } from "@/features/auth";
+
+const triagerSchema = z.object({
+  email: z.string().trim().email("Enter a valid researcher email"),
+});
 
 export default function OrganizationTriagers() {
   const accessToken = useAuthStore((state) => state.accessToken);
@@ -36,6 +41,12 @@ export default function OrganizationTriagers() {
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
     setError("");
+    const result = triagerSchema.safeParse({ email });
+    if (!result.success) {
+      setError(result.error.issues[0]?.message ?? "Enter a valid researcher email");
+      return;
+    }
+
     mutation.mutate();
   };
 

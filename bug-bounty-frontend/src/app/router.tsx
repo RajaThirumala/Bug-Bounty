@@ -25,6 +25,7 @@ import OrganizationFeatureRequests from "@/pages/organization/OrganizationFeatur
 import CreateFeatureRequest from "@/pages/organization/CreateFeatureRequest";
 import OrganizationTriagers from "@/pages/organization/OrganizationTriagers";
 import ReportDetail from "@/pages/reports/ReportDetail";
+import AdminDashboard from "@/pages/admin/AdminDashboard";
 
 export const router = createBrowserRouter([
   { path: "/", element: <Home /> },
@@ -88,6 +89,30 @@ export const router = createBrowserRouter([
         element: (
           <RoleGuard allow={["triager"]}>
             <ReportDetail />
+          </RoleGuard>
+        ),
+      },
+      {
+        path: "/triager/feature-requests",
+        element: (
+          <RoleGuard allow={["triager"]}>
+            <OrganizationFeatureRequests />
+          </RoleGuard>
+        ),
+      },
+      {
+        path: "/admin",
+        element: (
+          <RoleGuard allow={["admin"]}>
+            <RootRedirect />
+          </RoleGuard>
+        ),
+      },
+      {
+        path: "/admin/dashboard",
+        element: (
+          <RoleGuard allow={["admin"]}>
+            <AdminDashboard />
           </RoleGuard>
         ),
       },

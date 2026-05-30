@@ -1,9 +1,11 @@
 import { Activity, CheckCircle2, FileText, Lightbulb, ShieldCheck } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
+import { Link } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card";
 import { PageHeader } from "@/components/common/PageHeader";
 import { StatCard } from "@/components/common/StatCard";
 import { EmptyState } from "@/components/common/EmptyState";
+import { Badge } from "@/components/ui/badge";
 import { getResearcherPrograms } from "@/features/programs";
 import { getResearcherReports } from "@/features/reports";
 import { getResearcherFeatureRequests } from "@/features/featureRequests";
@@ -29,6 +31,9 @@ export default function DeveloperDashboard() {
   });
   const myReports = reportsData?.reports ?? [];
   const acceptedReports = myReports.filter((report) => report.status === "resolved");
+  const recentReports = [...myReports]
+    .sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime())
+    .slice(0, 4);
 
   return (
     <div>
@@ -57,10 +62,32 @@ export default function DeveloperDashboard() {
         <Activity className="h-4 w-4 text-muted-foreground" />
         <h3 className="text-sm font-medium">Recent activity</h3>
       </div>
-      <EmptyState
-        title="No new activity"
-        description="Report updates and feature request activity will appear here."
-      />
+      {recentReports.length > 0 ? (
+        <Card className="border-border/70 shadow-[var(--shadow-soft)] rounded-xl">
+          <CardContent className="p-4 space-y-3">
+            {recentReports.map((report) => (
+              <Link
+                key={report.id}
+                to={`/researcher/reports/${report.id}`}
+                className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 rounded-md border p-3 hover:bg-muted/40"
+              >
+                <div>
+                  <p className="text-sm font-medium">{report.title}</p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    {report.programName ?? report.programId}
+                  </p>
+                </div>
+                <Badge variant="outline" className="capitalize w-fit">{report.status}</Badge>
+              </Link>
+            ))}
+          </CardContent>
+        </Card>
+      ) : (
+        <EmptyState
+          title="No new activity"
+          description="Report updates and feature request activity will appear here."
+        />
+      )}
     </div>
   );
 }

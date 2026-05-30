@@ -1,6 +1,5 @@
 import { Link, useLocation } from "react-router-dom";
 import {
-  Bug,
   ClipboardList,
   FilePlus2,
   FileText,
@@ -10,9 +9,11 @@ import {
   ShieldCheck,
   Users,
   User,
+  Wallet,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuthStore } from "@/features/auth";
+import { CoinLogo } from "@/components/common/CoinLogo";
 
 const developerItems = [
   { to: "/researcher/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -36,6 +37,12 @@ const organizationItems = [
 const triagerItems = [
   { to: "/triager/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { to: "/triager/reports", label: "Reports", icon: ClipboardList },
+  { to: "/triager/feature-requests", label: "Feature Reviews", icon: Lightbulb },
+  { to: "/profile", label: "Profile", icon: User },
+];
+
+const adminItems = [
+  { to: "/admin/dashboard", label: "Escrow", icon: Wallet },
   { to: "/profile", label: "Profile", icon: User },
 ];
 
@@ -47,20 +54,24 @@ export function Sidebar() {
       ? "/organization/dashboard"
       : role === "triager"
         ? "/triager/dashboard"
+        : role === "admin"
+          ? "/admin/dashboard"
         : "/researcher/dashboard";
   const items =
     role === "organization"
       ? organizationItems
       : role === "triager"
         ? triagerItems
+        : role === "admin"
+          ? adminItems
         : developerItems;
 
   return (
     <aside className="hidden md:flex w-60 shrink-0 border-r border-sidebar-border bg-sidebar flex-col">
       <div className="px-5 py-5 border-b border-sidebar-border">
         <Link to={homePath} className="flex items-center gap-2">
-          <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
-            <Bug className="h-4 w-4 text-primary" />
+          <div className="h-8 w-8 flex items-center justify-center">
+            <CoinLogo className="h-6 w-6" />
           </div>
           <span className="font-semibold tracking-tight text-sidebar-foreground">BugBounty</span>
         </Link>

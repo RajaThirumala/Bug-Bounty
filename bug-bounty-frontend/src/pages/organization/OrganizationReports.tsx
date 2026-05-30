@@ -22,12 +22,14 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import {
+  assignReportTriager,
   getOrganizationReports,
   updateReportStatus,
   type ReportSeverity,
   type ReportStatus,
 } from "@/features/reports";
 import { useAuthStore } from "@/features/auth";
+import { getOrganizationTriagers } from "@/features/team/api";
 
 const statusLabels: Record<ReportStatus, string> = {
   submitted: "Submitted",
@@ -46,13 +48,20 @@ const severityLabels: Record<ReportSeverity, string> = {
 export default function OrganizationReports() {
   const accessToken = useAuthStore((state) => state.accessToken);
   const role = useAuthStore((state) => state.user?.role);
+  const userId = useAuthStore((state) => state.user?.id);
   const queryClient = useQueryClient();
   const [draftStatuses, setDraftStatuses] = useState<Record<string, ReportStatus>>({});
   const [draftSeverities, setDraftSeverities] = useState<Record<string, ReportSeverity>>({});
+  const [filter, setFilter] = useState<"all" | "assigned-to-me" | "unassigned">("all");
   const { data, isLoading, error } = useQuery({
     queryKey: ["organization-reports"],
     queryFn: () => getOrganizationReports(accessToken ?? ""),
     enabled: Boolean(accessToken),
+  });
+  const { data: triagersData } = useQuery({
+    queryKey: ["organization-triagers"],
+    queryFn: () => getOrganizationTriagers(accessToken ?? ""),
+    enabled: Boolean(accessToken && role === "organization"),
   });
   const mutation = useMutation({
     mutationFn: ({
@@ -68,7 +77,25 @@ export default function OrganizationReports() {
       await queryClient.invalidateQueries({ queryKey: ["organization-reports"] });
     },
   });
-  const reports = useMemo(() => data?.reports ?? [], [data?.reports]);
+  const assignmentMutation = useMutation({
+    mutationFn: ({ reportId, triagerId }: { reportId: string; triagerId: string | null }) =>
+      assignReportTriager(accessToken ?? "", reportId, triagerId),
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["organization-reports"] });
+    },
+  });
+  const reports = useMemo(() => {
+    const allReports = data?.reports ?? [];
+    if (filter === "assigned-to-me") {
+      return allReports.filter((report) => report.assignedTriagerId === userId);
+    }
+    if (filter === "unassigned") {
+      return allReports.filter((report) => !report.assignedTriagerId);
+    }
+    return allReports;
+  }, [data?.reports, filter, userId]);
+  const allReports = data?.reports ?? [];
+  const triagers = triagersData?.triagers ?? [];
   const detailBasePath = role === "triager" ? "/triager/reports" : "/organization/reports";
 
   useEffect(() => {
@@ -89,6 +116,20 @@ export default function OrganizationReports() {
 
       {isLoading && <p className="text-sm text-muted-foreground">Loading reports...</p>}
       {error && <p className="text-sm text-destructive">Unable to load reports.</p>}
+      {!isLoading && !error && allReports.length > 0 && role === "triager" && (
+        <div className="mb-4">
+          <Select value={filter} onValueChange={(value) => setFilter(value as typeof filter)}>
+            <SelectTrigger className="w-full sm:w-56">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All reports</SelectItem>
+              <SelectItem value="assigned-to-me">Assigned to me</SelectItem>
+              <SelectItem value="unassigned">Unassigned</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      )}
       {!isLoading && !error && reports.length === 0 && (
         <EmptyState
           title="No submitted reports"
@@ -104,6 +145,7 @@ export default function OrganizationReports() {
               <TableRow>
                 <TableHead>Report</TableHead>
                 <TableHead>Program</TableHead>
+                <TableHead>Assigned</TableHead>
                 <TableHead>Severity</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="text-right">Actions</TableHead>
@@ -119,6 +161,39 @@ export default function OrganizationReports() {
                       </Link>
                     </TableCell>
                     <TableCell>{report.programName ?? report.programId}</TableCell>
+                    <TableCell className="w-52">
+                      {role === "organization" ? (
+                        <Select
+                          value={report.assignedTriagerId ?? "unassigned"}
+                          onValueChange={(value) =>
+                            assignmentMutation.mutate({
+                              reportId: report.id,
+                              triagerId: value === "unassigned" ? null : value,
+                            })
+                          }
+                        >
+                          <SelectTrigger aria-label="Assigned triager">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="unassigned">Unassigned</SelectItem>
+                            {triagers.map((triager) => (
+                              <SelectItem key={triager.id} value={triager.id}>
+                                {triager.fullName}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      ) : (
+                        <span className="text-sm text-muted-foreground">
+                          {report.assignedTriagerId === userId
+                            ? "Assigned to me"
+                            : report.assignedTriagerId
+                              ? "Assigned"
+                              : "Unassigned"}
+                        </span>
+                      )}
+                    </TableCell>
                     <TableCell className="w-40">
                       <Select
                         value={draftSeverities[report.id] ?? report.severity}

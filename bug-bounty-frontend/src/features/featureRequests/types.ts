@@ -19,6 +19,7 @@ export interface FeatureRequestSubmission {
   researcherId: string;
   submissionUrl: string;
   status: FeatureRequestSubmissionStatus;
+  assignedTriagerId: string | null;
   submittedAt: string;
 }
 

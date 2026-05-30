@@ -8,6 +8,7 @@ export type ReportChatAck =
 
 export const createReportSocket = (accessToken: string): Socket => {
   return io(API_URL, {
-    auth: { token: accessToken },
+    auth: accessToken === "cookie" ? undefined : { token: accessToken },
+    withCredentials: true,
   });
 };

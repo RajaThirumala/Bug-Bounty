@@ -19,6 +19,7 @@ type AuthResponse = {
 };
 
 const OAUTH_ROLE_KEY = "bug-bounty.oauthRole";
+const COOKIE_SESSION = "cookie";
 
 interface AuthState {
   isAuthenticated: boolean;
@@ -37,18 +38,27 @@ interface AuthState {
   completeOAuthSignIn: () => Promise<AuthUser>;
   chooseResearcher: () => Promise<AuthUser>;
   createOrganization: (name: string) => Promise<AuthUser>;
+  updateProfile: (input: { fullName: string; username: string | null }) => Promise<AuthUser>;
   signOut: () => Promise<void>;
   setRole: (role: UserRole) => void;
 }
 
 const roleToBackend = (role: UserRole): BackendRole =>
-  role === "organization" ? "organization_owner" : role === "triager" ? "triager" : "researcher";
+  role === "organization"
+    ? "organization_owner"
+    : role === "triager"
+      ? "triager"
+      : role === "admin"
+        ? "platform_admin"
+        : "researcher";
 
 const roleFromBackend = (role: BackendRole): UserRole =>
   role === "organization_owner"
     ? "organization"
     : role === "triager"
       ? "triager"
+      : role === "platform_admin"
+        ? "admin"
       : "developer";
 
 const toAuthUser = (user: BackendAuthUser): AuthUser => {
@@ -75,15 +85,15 @@ const toAuthUser = (user: BackendAuthUser): AuthUser => {
         ? "Organization owner"
         : user.role === "triager"
           ? "Security triager"
+          : user.role === "platform_admin"
+            ? "Platform admin"
           : "Security researcher",
     initials: initials || "U",
   };
 };
 
-const fetchMe = async (accessToken: string) => {
-  const response = await apiRequest<{ user: BackendAuthUser }>("/api/auth/me", {
-    accessToken,
-  });
+const fetchMe = async () => {
+  const response = await apiRequest<{ user: BackendAuthUser }>("/api/auth/me");
 
   return toAuthUser(response.user);
 };
@@ -94,16 +104,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
   accessToken: null,
   user: null,
   initAuth: async () => {
-    const { data } = await supabase.auth.getSession();
-    const accessToken = data.session?.access_token ?? null;
-
-    if (!accessToken) {
+    try {
+      const user = await fetchMe();
+      set({ isAuthenticated: true, isLoading: false, accessToken: COOKIE_SESSION, user });
+    } catch {
       set({ isAuthenticated: false, isLoading: false, accessToken: null, user: null });
-      return;
     }
-
-    const user = await fetchMe(accessToken);
-    set({ isAuthenticated: true, isLoading: false, accessToken, user });
   },
   signIn: async (email, password) => {
     const response = await apiRequest<AuthResponse>("/api/auth/login", {
@@ -111,18 +117,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       body: JSON.stringify({ email, password }),
     });
 
-    if (response.session) {
-      await supabase.auth.setSession({
-        access_token: response.session.access_token,
-        refresh_token: response.session.refresh_token,
-      });
-    }
-
     const user = toAuthUser(response.user);
     set({
       isAuthenticated: true,
       isLoading: false,
-      accessToken: response.session?.access_token ?? null,
+      accessToken: COOKIE_SESSION,
       user,
     });
     return user;
@@ -138,18 +137,11 @@ export const useAuthStore = create<AuthState>((set, get) => ({
       }),
     });
 
-    if (response.session) {
-      await supabase.auth.setSession({
-        access_token: response.session.access_token,
-        refresh_token: response.session.refresh_token,
-      });
-    }
-
     const user = toAuthUser(response.user);
     set({
-      isAuthenticated: Boolean(response.session),
+      isAuthenticated: true,
       isLoading: false,
-      accessToken: response.session?.access_token ?? null,
+      accessToken: COOKIE_SESSION,
       user,
     });
     return user;
@@ -192,20 +184,18 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({
       isAuthenticated: true,
       isLoading: false,
-      accessToken: data.session.access_token,
+      accessToken: COOKIE_SESSION,
       user,
     });
     return user;
   },
   chooseResearcher: async () => {
-    const accessToken = get().accessToken;
-    if (!accessToken) {
+    if (!get().accessToken) {
       throw new Error("Authentication required");
     }
 
     const response = await apiRequest<{ user: BackendAuthUser }>("/api/auth/onboarding/researcher", {
       method: "POST",
-      accessToken,
       body: JSON.stringify({}),
     });
 
@@ -214,14 +204,12 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     return user;
   },
   createOrganization: async (name) => {
-    const accessToken = get().accessToken;
-    if (!accessToken) {
+    if (!get().accessToken) {
       throw new Error("Authentication required");
     }
 
     const response = await apiRequest<{ user: BackendAuthUser }>("/api/auth/onboarding/organization", {
       method: "POST",
-      accessToken,
       body: JSON.stringify({ name }),
     });
 
@@ -229,7 +217,22 @@ export const useAuthStore = create<AuthState>((set, get) => ({
     set({ user, isAuthenticated: true, isLoading: false });
     return user;
   },
+  updateProfile: async (input) => {
+    if (!get().accessToken) {
+      throw new Error("Authentication required");
+    }
+
+    const response = await apiRequest<{ user: BackendAuthUser }>("/api/auth/me", {
+      method: "PATCH",
+      body: JSON.stringify(input),
+    });
+
+    const user = toAuthUser(response.user);
+    set({ user, isAuthenticated: true, isLoading: false });
+    return user;
+  },
   signOut: async () => {
+    await apiRequest<void>("/api/auth/logout", { method: "POST" }).catch(() => undefined);
     await supabase.auth.signOut();
     set({ isAuthenticated: false, isLoading: false, accessToken: null, user: null });
   },

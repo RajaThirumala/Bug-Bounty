@@ -55,6 +55,16 @@ export const featureRequestSubmissionStatus = pgEnum("feature_request_submission
   "rejected",
 ]);
 
+export const escrowSourceType = pgEnum("escrow_source_type", [
+  "program",
+  "feature_request",
+]);
+
+export const escrowStatus = pgEnum("escrow_status", [
+  "held",
+  "released",
+]);
+
 export const profiles = pgTable("profiles", {
   id: uuid("id")
     .primaryKey()
@@ -123,6 +133,9 @@ export const reports = pgTable("reports", {
   summary: text("summary").notNull(),
   severity: reportSeverity("severity").notNull(),
   status: reportStatus("status").notNull().default("submitted"),
+  assignedTriagerId: uuid("assigned_triager_id").references(() => profiles.id, {
+    onDelete: "set null",
+  }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 }).enableRLS();
@@ -163,6 +176,25 @@ export const featureRequestSubmissions = pgTable("feature_request_submissions", 
     .references(() => profiles.id, { onDelete: "cascade" }),
   submissionUrl: text("submission_url").notNull(),
   status: featureRequestSubmissionStatus("status").notNull().default("submitted"),
+  assignedTriagerId: uuid("assigned_triager_id").references(() => profiles.id, {
+    onDelete: "set null",
+  }),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+}).enableRLS();
+
+export const escrowFunds = pgTable("escrow_funds", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  organizationId: uuid("organization_id")
+    .notNull()
+    .references(() => organizations.id, { onDelete: "cascade" }),
+  sourceType: escrowSourceType("source_type").notNull(),
+  sourceId: uuid("source_id").notNull(),
+  amount: integer("amount").notNull().default(0),
+  status: escrowStatus("status").notNull().default("held"),
+  recipientId: uuid("recipient_id").references(() => profiles.id, { onDelete: "set null" }),
+  releaseReason: text("release_reason"),
+  releasedAt: timestamp("released_at", { withTimezone: true }),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
 }).enableRLS();
@@ -183,3 +215,5 @@ export type FeatureRequest = typeof featureRequests.$inferSelect;
 export type NewFeatureRequest = typeof featureRequests.$inferInsert;
 export type FeatureRequestSubmission = typeof featureRequestSubmissions.$inferSelect;
 export type NewFeatureRequestSubmission = typeof featureRequestSubmissions.$inferInsert;
+export type EscrowFund = typeof escrowFunds.$inferSelect;
+export type NewEscrowFund = typeof escrowFunds.$inferInsert;

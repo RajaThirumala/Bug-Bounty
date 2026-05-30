@@ -32,7 +32,10 @@ export const initializeSocketServer = (server: HttpServer) => {
 
   io.use(async (socket, next) => {
     try {
-      const token = socket.handshake.auth.token;
+      const token =
+        typeof socket.handshake.auth.token === "string" && socket.handshake.auth.token !== "cookie"
+          ? socket.handshake.auth.token
+          : getCookie(socket.handshake.headers.cookie, "access_token");
       if (typeof token !== "string" || !token) {
         next(new Error("Authentication required"));
         return;
@@ -95,4 +98,15 @@ export const initializeSocketServer = (server: HttpServer) => {
   });
 
   return io;
+};
+
+const getCookie = (cookieHeader: string | undefined, name: string) => {
+  if (!cookieHeader) {
+    return undefined;
+  }
+
+  const cookies = cookieHeader.split(";").map((cookie) => cookie.trim());
+  const prefix = `${name}=`;
+  const cookie = cookies.find((item) => item.startsWith(prefix));
+  return cookie ? decodeURIComponent(cookie.slice(prefix.length)) : undefined;
 };

@@ -12,6 +12,11 @@ export interface CreateProgramInput {
   description: string;
   minBounty: number;
   maxBounty: number;
+  scope: string[];
+}
+
+export interface UpdateProgramInput {
+  description: string;
   status: ProgramStatus;
   scope: string[];
 }
@@ -27,6 +32,17 @@ export const getOrganizationPrograms = (accessToken: string) =>
 export const createProgram = (accessToken: string, input: CreateProgramInput) =>
   apiRequest<{ program: Program }>("/api/organization/programs", {
     method: "POST",
+    accessToken,
+    body: JSON.stringify(input),
+  });
+
+export const updateProgram = (
+  accessToken: string,
+  programId: string,
+  input: UpdateProgramInput,
+) =>
+  apiRequest<{ program: Program }>(`/api/organization/programs/${programId}`, {
+    method: "PATCH",
     accessToken,
     body: JSON.stringify(input),
   });

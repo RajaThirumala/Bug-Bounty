@@ -1,9 +1,9 @@
 import { and, eq, inArray, ne } from "drizzle-orm";
 
 import { db } from "../../db/index.js";
-import { organizationMembers, organizations, programs } from "../../db/schema/index.js";
+import { escrowFunds, organizationMembers, organizations, programs } from "../../db/schema/index.js";
 import { ApiError } from "../../utils/apiError.js";
-import type { CreateProgramInput } from "./programs.validation.js";
+import type { CreateProgramInput, UpdateProgramInput } from "./programs.validation.js";
 
 type OrganizationAccessRole = "owner" | "triager";
 
@@ -70,21 +70,58 @@ export const createOrganizationProgram = async (
   input: CreateProgramInput,
 ) => {
   const organization = await requireCurrentOrganization(profileId);
-  const [program] = await db
-    .insert(programs)
-    .values({
-      organizationId: organization.id,
-      name: input.name,
-      description: input.description,
-      minBounty: input.minBounty,
-      maxBounty: input.maxBounty,
-      status: input.status,
-      scope: input.scope,
-    })
-    .returning();
+  const program = await db.transaction(async (tx) => {
+    const [createdProgram] = await tx
+      .insert(programs)
+      .values({
+        organizationId: organization.id,
+        name: input.name,
+        description: input.description,
+        minBounty: input.minBounty,
+        maxBounty: input.maxBounty,
+        status: input.status,
+        scope: input.scope,
+      })
+      .returning();
+
+    if (createdProgram) {
+      await tx.insert(escrowFunds).values({
+        organizationId: organization.id,
+        sourceType: "program",
+        sourceId: createdProgram.id,
+        amount: input.maxBounty,
+      });
+    }
+
+    return createdProgram;
+  });
 
   if (!program) {
     throw new ApiError(400, "Unable to create program");
+  }
+
+  return toProgramResponse(program, organization.name);
+};
+
+export const updateOrganizationProgram = async (
+  profileId: string,
+  programId: string,
+  input: UpdateProgramInput,
+) => {
+  const organization = await requireCurrentOrganization(profileId);
+  const [program] = await db
+    .update(programs)
+    .set({
+      description: input.description,
+      status: input.status,
+      scope: input.scope,
+      updatedAt: new Date(),
+    })
+    .where(and(eq(programs.id, programId), eq(programs.organizationId, organization.id)))
+    .returning();
+
+  if (!program) {
+    throw new ApiError(404, "Program not found");
   }
 
   return toProgramResponse(program, organization.name);

@@ -4,12 +4,18 @@ import { db } from "../../db/index.js";
 import {
   featureRequests,
   featureRequestSubmissions,
+  escrowFunds,
+  organizationMembers,
   organizations,
   profiles,
 } from "../../db/schema/index.js";
 import { ApiError } from "../../utils/apiError.js";
-import { requireCurrentOrganization } from "../programs/programs.service.js";
+import {
+  requireCurrentOrganization,
+  requireReviewOrganization,
+} from "../programs/programs.service.js";
 import type {
+  AssignFeatureRequestSubmissionTriagerInput,
   CreateFeatureRequestInput,
   ReviewFeatureRequestSubmissionInput,
   SubmitFeatureRequestInput,
@@ -33,17 +39,30 @@ export const createOrganizationFeatureRequest = async (
   input: CreateFeatureRequestInput,
 ) => {
   const organization = await requireCurrentOrganization(profileId);
-  const [request] = await db
-    .insert(featureRequests)
-    .values({
-      organizationId: organization.id,
-      title: input.title,
-      description: input.description,
-      repositoryUrl: input.repositoryUrl,
-      bounty: input.bounty,
-      status: input.status,
-    })
-    .returning();
+  const request = await db.transaction(async (tx) => {
+    const [createdRequest] = await tx
+      .insert(featureRequests)
+      .values({
+        organizationId: organization.id,
+        title: input.title,
+        description: input.description,
+        repositoryUrl: input.repositoryUrl,
+        bounty: input.bounty,
+        status: input.status,
+      })
+      .returning();
+
+    if (createdRequest) {
+      await tx.insert(escrowFunds).values({
+        organizationId: organization.id,
+        sourceType: "feature_request",
+        sourceId: createdRequest.id,
+        amount: input.bounty,
+      });
+    }
+
+    return createdRequest;
+  });
 
   if (!request) {
     throw new ApiError(400, "Unable to create feature request");
@@ -99,6 +118,7 @@ export const submitFeatureRequest = async (
       .set({
         submissionUrl: input.submissionUrl,
         status: "submitted",
+        assignedTriagerId: null,
         updatedAt: new Date(),
       })
       .where(eq(featureRequestSubmissions.id, existing.id))
@@ -138,7 +158,13 @@ export const listMyFeatureRequestSubmissions = async (researcherId: string) => {
 };
 
 export const listOrganizationFeatureRequestSubmissions = async (profileId: string) => {
-  const organization = await requireCurrentOrganization(profileId);
+  const organization = await requireReviewOrganization(profileId);
+  const membership = await db.query.organizationMembers.findFirst({
+    where: and(
+      eq(organizationMembers.organizationId, organization.id),
+      eq(organizationMembers.profileId, profileId),
+    ),
+  });
   const rows = await db
     .select({
       id: featureRequestSubmissions.id,
@@ -146,6 +172,7 @@ export const listOrganizationFeatureRequestSubmissions = async (profileId: strin
       researcherId: featureRequestSubmissions.researcherId,
       submissionUrl: featureRequestSubmissions.submissionUrl,
       status: featureRequestSubmissions.status,
+      assignedTriagerId: featureRequestSubmissions.assignedTriagerId,
       createdAt: featureRequestSubmissions.createdAt,
       updatedAt: featureRequestSubmissions.updatedAt,
       featureRequestTitle: featureRequests.title,
@@ -157,17 +184,21 @@ export const listOrganizationFeatureRequestSubmissions = async (profileId: strin
     .innerJoin(profiles, eq(featureRequestSubmissions.researcherId, profiles.id))
     .where(eq(featureRequests.organizationId, organization.id))
     .orderBy(featureRequestSubmissions.createdAt);
+  const visibleRows =
+    membership?.role === "triager"
+      ? rows.filter((submission) => submission.assignedTriagerId === profileId)
+      : rows;
 
   return {
     organization,
-    submissions: rows.map(toOrganizationSubmissionResponse),
+    submissions: visibleRows.map(toOrganizationSubmissionResponse),
   };
 };
 
-export const reviewFeatureRequestSubmission = async (
+export const assignFeatureRequestSubmissionTriager = async (
   profileId: string,
   submissionId: string,
-  input: ReviewFeatureRequestSubmissionInput,
+  input: AssignFeatureRequestSubmissionTriagerInput,
 ) => {
   const organization = await requireCurrentOrganization(profileId);
   const [ownedSubmission] = await db
@@ -186,6 +217,70 @@ export const reviewFeatureRequestSubmission = async (
 
   if (!ownedSubmission) {
     throw new ApiError(404, "Submission not found");
+  }
+
+  if (input.triagerId) {
+    const triagerMembership = await db.query.organizationMembers.findFirst({
+      where: and(
+        eq(organizationMembers.organizationId, organization.id),
+        eq(organizationMembers.profileId, input.triagerId),
+        eq(organizationMembers.role, "triager"),
+      ),
+    });
+
+    if (!triagerMembership) {
+      throw new ApiError(400, "Triager must belong to this organization");
+    }
+  }
+
+  const [submission] = await db
+    .update(featureRequestSubmissions)
+    .set({
+      assignedTriagerId: input.triagerId,
+      updatedAt: new Date(),
+    })
+    .where(eq(featureRequestSubmissions.id, submissionId))
+    .returning();
+
+  if (!submission) {
+    throw new ApiError(400, "Unable to assign submission");
+  }
+
+  return toSubmissionResponse(submission);
+};
+
+export const reviewFeatureRequestSubmission = async (
+  profileId: string,
+  submissionId: string,
+  input: ReviewFeatureRequestSubmissionInput,
+) => {
+  const organization = await requireReviewOrganization(profileId);
+  const membership = await db.query.organizationMembers.findFirst({
+    where: and(
+      eq(organizationMembers.organizationId, organization.id),
+      eq(organizationMembers.profileId, profileId),
+    ),
+  });
+  const [ownedSubmission] = await db
+    .select({
+      id: featureRequestSubmissions.id,
+      assignedTriagerId: featureRequestSubmissions.assignedTriagerId,
+    })
+    .from(featureRequestSubmissions)
+    .innerJoin(featureRequests, eq(featureRequestSubmissions.featureRequestId, featureRequests.id))
+    .where(
+      and(
+        eq(featureRequestSubmissions.id, submissionId),
+        eq(featureRequests.organizationId, organization.id),
+      ),
+    )
+    .limit(1);
+
+  if (!ownedSubmission) {
+    throw new ApiError(404, "Submission not found");
+  }
+  if (membership?.role === "triager" && ownedSubmission.assignedTriagerId !== profileId) {
+    throw new ApiError(403, "Submission must be assigned to you");
   }
 
   const [submission] = await db
@@ -231,6 +326,7 @@ const toSubmissionResponse = (submission: typeof featureRequestSubmissions.$infe
   researcherId: submission.researcherId,
   submissionUrl: submission.submissionUrl,
   status: submission.status,
+  assignedTriagerId: submission.assignedTriagerId,
   submittedAt: submission.createdAt.toISOString(),
 });
 

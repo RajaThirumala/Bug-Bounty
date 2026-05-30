@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite --configLoader native",
-    "build": "tsc -b && vite build --configLoader native",
+    "build": "tsc -b && vite build --configLoader native --emptyOutDir false",
     "lint": "eslint .",
     "preview": "vite preview"
   },

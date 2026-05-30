@@ -2,6 +2,7 @@ import { Router } from "express";
 
 import { requireAuth } from "../../middleware/authMiddleware.js";
 import {
+  assignReportTriager,
   createReport,
   organizationReports,
   postReportMessage,
@@ -17,6 +18,7 @@ reportsRouter.get("/researcher/reports", requireAuth, researcherReports);
 reportsRouter.post("/researcher/reports", requireAuth, createReport);
 reportsRouter.get("/organization/reports", requireAuth, organizationReports);
 reportsRouter.patch("/organization/reports/:reportId/status", requireAuth, updateReportStatus);
+reportsRouter.patch("/organization/reports/:reportId/triager", requireAuth, assignReportTriager);
 reportsRouter.get("/reports/:reportId", requireAuth, reportDetail);
 reportsRouter.get("/reports/:reportId/messages", requireAuth, reportMessages);
 reportsRouter.post("/reports/:reportId/messages", requireAuth, postReportMessage);

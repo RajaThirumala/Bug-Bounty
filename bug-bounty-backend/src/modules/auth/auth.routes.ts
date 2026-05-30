@@ -10,6 +10,7 @@ import {
   me,
   refresh,
   register,
+  updateProfile,
 } from "./auth.controller.js";
 
 export const authRouter = Router();
@@ -20,5 +21,6 @@ authRouter.post("/oauth/complete", completeOAuth);
 authRouter.post("/refresh", refresh);
 authRouter.post("/logout", logout);
 authRouter.get("/me", requireAuth, me);
+authRouter.patch("/me", requireAuth, updateProfile);
 authRouter.post("/onboarding/researcher", requireAuth, chooseResearcher);
 authRouter.post("/onboarding/organization", requireAuth, createOrganization);

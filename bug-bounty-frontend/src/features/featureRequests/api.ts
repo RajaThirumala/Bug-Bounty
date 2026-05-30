@@ -58,6 +58,20 @@ export const getOrganizationFeatureRequestSubmissions = (accessToken: string) =>
     { accessToken },
   );
 
+export const assignFeatureRequestSubmissionTriager = (
+  accessToken: string,
+  submissionId: string,
+  triagerId: string | null,
+) =>
+  apiRequest<{ submission: FeatureRequestSubmission }>(
+    `/api/organization/feature-request-submissions/${submissionId}/triager`,
+    {
+      method: "PATCH",
+      accessToken,
+      body: JSON.stringify({ triagerId }),
+    },
+  );
+
 export const reviewFeatureRequestSubmission = (
   accessToken: string,
   submissionId: string,

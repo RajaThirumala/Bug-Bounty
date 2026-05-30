@@ -154,19 +154,34 @@ export default function ReportDetail() {
               {sortedMessages.length === 0 ? (
                 <p className="text-sm text-muted-foreground">No messages yet.</p>
               ) : (
-                sortedMessages.map((message) => (
-                  <div key={message.id} className="rounded-md bg-background border p-3">
-                    <div className="flex items-center justify-between gap-3">
-                      <p className="text-sm font-medium">{message.senderName}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {new Date(message.createdAt).toLocaleString()}
+                sortedMessages.map((message) => {
+                  const isMine = message.senderId === user?.id;
+
+                  return (
+                  <div
+                    key={message.id}
+                    className={`flex ${isMine ? "justify-end" : "justify-start"}`}
+                  >
+                    <div
+                      className={`max-w-[85%] rounded-lg border p-3 ${
+                        isMine
+                          ? "border-foreground/10 bg-foreground text-background"
+                          : "border-border bg-background text-foreground"
+                      }`}
+                    >
+                      <div className={`flex items-center justify-between gap-3 ${isMine ? "text-background/75" : "text-muted-foreground"}`}>
+                        <p className="text-sm font-medium">{isMine ? "You" : message.senderName}</p>
+                        <p className="text-xs">
+                          {new Date(message.createdAt).toLocaleString()}
+                        </p>
+                      </div>
+                      <p className={`mt-2 whitespace-pre-wrap text-sm ${isMine ? "text-background" : "text-muted-foreground"}`}>
+                        {message.body}
                       </p>
                     </div>
-                    <p className="text-sm text-muted-foreground mt-2 whitespace-pre-wrap">
-                      {message.body}
-                    </p>
                   </div>
-                ))
+                  );
+                })
               )}
             </div>
 

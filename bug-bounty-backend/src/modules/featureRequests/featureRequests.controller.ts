@@ -1,6 +1,7 @@
 import { asyncHandler } from "../../utils/asyncHandler.js";
 import { ApiError } from "../../utils/apiError.js";
 import {
+  assignFeatureRequestSubmissionTriager,
   createOrganizationFeatureRequest,
   listMyFeatureRequestSubmissions,
   listOrganizationFeatureRequests,
@@ -10,6 +11,7 @@ import {
   submitFeatureRequest,
 } from "./featureRequests.service.js";
 import {
+  assignFeatureRequestSubmissionTriagerSchema,
   createFeatureRequestSchema,
   reviewFeatureRequestSubmissionSchema,
   submitFeatureRequestSchema,
@@ -69,6 +71,21 @@ export const organizationFeatureRequestSubmissions = asyncHandler(async (req, re
   }
 
   res.json(await listOrganizationFeatureRequestSubmissions(req.user.id));
+});
+
+export const assignSubmissionTriager = asyncHandler(async (req, res) => {
+  if (!req.user) {
+    throw new ApiError(401, "Authentication required");
+  }
+
+  const submissionId = req.params.submissionId;
+  if (typeof submissionId !== "string") {
+    throw new ApiError(400, "submissionId is required");
+  }
+
+  const input = assignFeatureRequestSubmissionTriagerSchema.parse(req.body);
+  const submission = await assignFeatureRequestSubmissionTriager(req.user.id, submissionId, input);
+  res.json({ submission });
 });
 
 export const reviewSubmission = asyncHandler(async (req, res) => {

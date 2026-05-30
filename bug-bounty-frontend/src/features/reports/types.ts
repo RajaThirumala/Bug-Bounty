@@ -10,6 +10,7 @@ export interface Report {
   summary: string;
   severity: ReportSeverity;
   status: ReportStatus;
+  assignedTriagerId: string | null;
   submittedAt: string;
   programName?: string;
   organizationName?: string;

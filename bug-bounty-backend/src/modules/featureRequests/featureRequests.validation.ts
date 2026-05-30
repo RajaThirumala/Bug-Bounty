@@ -20,8 +20,15 @@ export const reviewFeatureRequestSubmissionSchema = z.object({
   status: z.enum(["approved", "rejected"]),
 });
 
+export const assignFeatureRequestSubmissionTriagerSchema = z.object({
+  triagerId: z.uuid().nullable(),
+});
+
 export type CreateFeatureRequestInput = z.infer<typeof createFeatureRequestSchema>;
 export type SubmitFeatureRequestInput = z.infer<typeof submitFeatureRequestSchema>;
 export type ReviewFeatureRequestSubmissionInput = z.infer<
   typeof reviewFeatureRequestSubmissionSchema
+>;
+export type AssignFeatureRequestSubmissionTriagerInput = z.infer<
+  typeof assignFeatureRequestSubmissionTriagerSchema
 >;

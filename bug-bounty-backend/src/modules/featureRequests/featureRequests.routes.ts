@@ -2,6 +2,7 @@ import { Router } from "express";
 
 import { requireAuth } from "../../middleware/authMiddleware.js";
 import {
+  assignSubmissionTriager,
   createFeatureRequestSubmission,
   createFeatureRequest,
   myFeatureRequestSubmissions,
@@ -26,6 +27,11 @@ featureRequestsRouter.get(
   "/organization/feature-request-submissions",
   requireAuth,
   organizationFeatureRequestSubmissions,
+);
+featureRequestsRouter.patch(
+  "/organization/feature-request-submissions/:submissionId/triager",
+  requireAuth,
+  assignSubmissionTriager,
 );
 featureRequestsRouter.patch(
   "/organization/feature-request-submissions/:submissionId",

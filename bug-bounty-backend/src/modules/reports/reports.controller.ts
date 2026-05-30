@@ -1,6 +1,7 @@
 import { asyncHandler } from "../../utils/asyncHandler.js";
 import { ApiError } from "../../utils/apiError.js";
 import {
+  assignOrganizationReportTriager,
   createReportMessage,
   createResearcherReport,
   getAccessibleReport,
@@ -10,6 +11,7 @@ import {
   updateOrganizationReportStatus,
 } from "./reports.service.js";
 import {
+  assignReportTriagerSchema,
   createReportMessageSchema,
   createReportSchema,
   updateReportStatusSchema,
@@ -98,6 +100,22 @@ export const updateReportStatus = asyncHandler(async (req, res) => {
 
   const input = updateReportStatusSchema.parse(req.body);
   const report = await updateOrganizationReportStatus(req.user.id, reportId, input);
+
+  res.json({ report });
+});
+
+export const assignReportTriager = asyncHandler(async (req, res) => {
+  if (!req.user) {
+    throw new ApiError(401, "Authentication required");
+  }
+
+  const reportId = req.params.reportId;
+  if (typeof reportId !== "string") {
+    throw new ApiError(400, "reportId is required");
+  }
+
+  const input = assignReportTriagerSchema.parse(req.body);
+  const report = await assignOrganizationReportTriager(req.user.id, reportId, input);
 
   res.json({ report });
 });

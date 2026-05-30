@@ -7,6 +7,7 @@ import {
   organizationPrograms,
   researcherProgram,
   researcherPrograms,
+  updateProgram,
 } from "./programs.controller.js";
 
 export const programsRouter = Router();
@@ -16,3 +17,4 @@ programsRouter.get("/researcher/programs/:programId", requireAuth, researcherPro
 programsRouter.get("/organization/me", requireAuth, meOrganization);
 programsRouter.get("/organization/programs", requireAuth, organizationPrograms);
 programsRouter.post("/organization/programs", requireAuth, createProgram);
+programsRouter.patch("/organization/programs/:programId", requireAuth, updateProgram);

@@ -1,6 +1,7 @@
 import { ExternalLink, GitBranch, Lightbulb, Send } from "lucide-react";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { z } from "zod";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -15,6 +16,12 @@ import {
   type FeatureRequestSubmissionStatus,
 } from "@/features/featureRequests";
 import { useAuthStore } from "@/features/auth";
+
+const submissionSchema = z.object({
+  submissionUrl: z.string().trim().url("Enter a valid GitHub repository URL").includes("github.com", {
+    message: "Submission URL must be a GitHub link",
+  }),
+});
 
 const statusLabel: Record<FeatureRequestStatus, string> = {
   open: "Open",
@@ -69,7 +76,12 @@ export default function DeveloperFeatureRequests() {
       return;
     }
     setSubmissionError("");
-    mutation.mutate({ requestId, submissionUrl });
+    const result = submissionSchema.safeParse({ submissionUrl });
+    if (!result.success) {
+      setSubmissionError(result.error.issues[0]?.message ?? "Enter a valid GitHub repository URL");
+      return;
+    }
+    mutation.mutate({ requestId, submissionUrl: result.data.submissionUrl });
   };
 
   return (

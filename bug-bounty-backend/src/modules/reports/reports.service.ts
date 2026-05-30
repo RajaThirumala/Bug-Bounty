@@ -10,8 +10,12 @@ import {
   reports,
 } from "../../db/schema/index.js";
 import { ApiError } from "../../utils/apiError.js";
-import { requireReviewOrganization } from "../programs/programs.service.js";
+import {
+  requireCurrentOrganization,
+  requireReviewOrganization,
+} from "../programs/programs.service.js";
 import type {
+  AssignReportTriagerInput,
   CreateReportInput,
   CreateReportMessageInput,
   UpdateReportStatusInput,
@@ -58,6 +62,7 @@ export const listResearcherReports = async (researcherId: string) => {
       summary: reports.summary,
       severity: reports.severity,
       status: reports.status,
+      assignedTriagerId: reports.assignedTriagerId,
       createdAt: reports.createdAt,
       updatedAt: reports.updatedAt,
       programName: programs.name,
@@ -82,6 +87,7 @@ export const getAccessibleReport = async (profileId: string, reportId: string) =
       summary: reports.summary,
       severity: reports.severity,
       status: reports.status,
+      assignedTriagerId: reports.assignedTriagerId,
       createdAt: reports.createdAt,
       updatedAt: reports.updatedAt,
       programName: programs.name,
@@ -137,6 +143,7 @@ export const listOrganizationReports = async (profileId: string) => {
       summary: reports.summary,
       severity: reports.severity,
       status: reports.status,
+      assignedTriagerId: reports.assignedTriagerId,
       createdAt: reports.createdAt,
       updatedAt: reports.updatedAt,
       programName: programs.name,
@@ -215,6 +222,56 @@ export const createReportMessage = async (
   return toReportMessageResponse(row);
 };
 
+export const assignOrganizationReportTriager = async (
+  profileId: string,
+  reportId: string,
+  input: AssignReportTriagerInput,
+) => {
+  const organization = await requireCurrentOrganization(profileId);
+  const [ownedReport] = await db
+    .select({
+      id: reports.id,
+      programName: programs.name,
+    })
+    .from(reports)
+    .innerJoin(programs, eq(reports.programId, programs.id))
+    .where(and(eq(reports.id, reportId), eq(programs.organizationId, organization.id)))
+    .limit(1);
+
+  if (!ownedReport) {
+    throw new ApiError(404, "Report not found");
+  }
+
+  if (input.triagerId) {
+    const triagerMembership = await db.query.organizationMembers.findFirst({
+      where: and(
+        eq(organizationMembers.organizationId, organization.id),
+        eq(organizationMembers.profileId, input.triagerId),
+        eq(organizationMembers.role, "triager"),
+      ),
+    });
+
+    if (!triagerMembership) {
+      throw new ApiError(400, "Triager must belong to this organization");
+    }
+  }
+
+  const [report] = await db
+    .update(reports)
+    .set({
+      assignedTriagerId: input.triagerId,
+      updatedAt: new Date(),
+    })
+    .where(eq(reports.id, reportId))
+    .returning();
+
+  if (!report) {
+    throw new ApiError(400, "Unable to assign report");
+  }
+
+  return toReportResponse(report, ownedReport.programName, organization.name);
+};
+
 export const updateOrganizationReportStatus = async (
   profileId: string,
   reportId: string,
@@ -277,6 +334,7 @@ const toReportResponse = (
   submittedAt: report.createdAt.toISOString(),
   programName,
   organizationName,
+  assignedTriagerId: report.assignedTriagerId,
 });
 
 const toReportMessageResponse = (message: ReportMessageRow) => ({

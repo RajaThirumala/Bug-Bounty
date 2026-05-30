@@ -11,12 +11,14 @@ import { useAuthStore } from "@/features/auth";
 
 export default function TriagerDashboard() {
   const accessToken = useAuthStore((state) => state.accessToken);
+  const userId = useAuthStore((state) => state.user?.id);
   const { data } = useQuery({
     queryKey: ["organization-reports"],
     queryFn: () => getOrganizationReports(accessToken ?? ""),
     enabled: Boolean(accessToken),
   });
   const reports = data?.reports ?? [];
+  const assignedReports = reports.filter((report) => report.assignedTriagerId === userId);
 
   return (
     <div>
@@ -26,7 +28,7 @@ export default function TriagerDashboard() {
       />
 
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-        <StatCard label="Submitted" value={reports.filter((report) => report.status === "submitted").length} icon={<ClipboardList className="h-4 w-4" />} />
+        <StatCard label="Assigned to me" value={assignedReports.length} icon={<ClipboardList className="h-4 w-4" />} />
         <StatCard label="Triaged" value={reports.filter((report) => report.status === "triaged").length} icon={<ShieldAlert className="h-4 w-4" />} />
         <StatCard label="Resolved" value={reports.filter((report) => report.status === "resolved").length} icon={<FileText className="h-4 w-4" />} />
       </div>
@@ -46,7 +48,7 @@ export default function TriagerDashboard() {
           </div>
 
           <div className="space-y-3">
-            {reports.slice(0, 5).map((report) => (
+            {(assignedReports.length > 0 ? assignedReports : reports).slice(0, 5).map((report) => (
               <div
                 key={report.id}
                 className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 rounded-md border p-3"

@@ -25,6 +25,8 @@ export function RootRedirect() {
           ? "/organization/dashboard"
           : user.role === "triager"
             ? "/triager/dashboard"
+            : user.role === "admin"
+              ? "/admin/dashboard"
             : "/researcher/dashboard"
       }
       replace
